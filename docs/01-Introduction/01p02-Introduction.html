@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>CEMA 0907: Statistics in the Real World</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Anthony Scotina" />
+    <link rel="stylesheet" href="my-theme.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# CEMA 0907: Statistics in the Real World
+## Introduction to Data and R (PART 2)
+### Anthony Scotina
+
+---
+
+
+
+
+
+
+
+# R Packages
+
+We will be using **R packages** extensively.
+- R is *open-source*, which means that members in the community can provide additional functions, data, or documentation in a *package*. 
+- Packages are *free* and can be easily downloaded. 
+
+--
+
+**Downloading packages in R Studio**
+
+&gt; **Packages** tab (bottom-right) -- **Install** -- Type package name and press *Install*
+
+- Install the following packages (separate by a comma when typing the names):
+    - `tidyverse`: suite of packages that we will use *extensively*
+    - `moderndive`: package that accompanies the textbook
+    - `infer`: package for statistical inference
+    - `openintro`, `babynames`, `nycflights13`: packages with useful datasets
+    
+---
+
+# Loading R Packages
+
+We load R packages with the `library()` function. 
+- Note that, while you only **install** packages once, you must **load** them *each time you open a new R session*. 
+
+Run the following:
+
+```r
+library(tidyverse)
+```
+
+Now this suite of packages (and their **dependencies**) is loaded!
+    
+---
+
+# Functions
+
+Once we define **objects**, **variables**, and/or **datasets**, much of data analysis involves applying a series of **functions** to the data. 
+
+We have already used several functions!
+- `c()`
+- `mean()`
+- `install.packages()` 
+
+--
+
+R functions typically require one or more *arguments*. 
+- Some arguments are *pre-set* to **default values**. 
+
+Run the following:
+
+```r
+?mean
+?sum
+?sqrt
+```
+
+---
+
+# Data Frames
+
+**Data frames**:  analogous to rectangular spreadsheets you would see in Excel or Google Spreadsheets. 
+
+- Rows of a data frame correspond to *observations*, and columns correspond to *variables*. 
+
+--
+
+The `mpg` data frame (contained in the `ggplot2` package, which is part of `tidyverse`), contains fuel economy data for 38 popular car models from [http://fueleconomy.gov](http://fueleconomy.gov). 
+
+Run the following two lines:
+
+```r
+library(tidyverse) # Run only if you haven't loaded this yet
+mpg
+```
+
+
+```r
+View(mpg)
+```
+
+---
+
+# `mpg` Data Frame
+
+A few notes on this dataset...
+
+- A "tibble" is a type of data frame in R. The `mpg` data frame has:
+    - 234 **rows**
+    - 11 **columns**
+    
+- The 11 columns correspond to 11 different **variables**. Some of which are: *manufacturer*, *model*, *cty*, *hwy*, etc.
+
+- In the console, we are shown the first 10 rows by default, since the rest can't fit on the screen. 
+
+---
+
+# Exploring Data
+
+The `$` operator allows us to explore a single variable within a data frame. For example, run the following in your console:
+
+```r
+mpg
+```
+
+
+```r
+mpg$manufacturer
+```
+
+
+```r
+mpg$cty
+```
+
+- The `$` extracts only the `manufacturer` or `cty` variable from the `mpg` data frame and returns it as a **vector**. 
+
+---
+
+# Exploring Data
+
+We can use the `$` operator to calculate descriptive statistics for variables within a dataset:
+
+
+```r
+mean(mpg$cty)
+```
+
+```
+[1] 16.85897
+```
+
+**What do you think `cty` means?**
+
+--
+
+You can get help in R by entering a `?` before the name of a function or data frame (*if it comes in an R package*), and a page will appear in the bottom-right panel. 
+
+- Try the following:
+
+```r
+?mpg
+```
+
+I use the help files **all the time**, and you should too, especially if you're stuck with a specific function!
+
+---
+
+# Types of Variables
+
+The object `mpg$city` is not one object, but *several*, contained within a **vector**. 
+
+The `class()` function gives the `class` of an object (e.g., *variable types*). 
+
+```r
+class(mpg$cty)
+```
+
+```
+## [1] "integer"
+```
+
+
+```r
+class(mpg$class)
+```
+
+```
+## [1] "character"
+```
+
+---
+
+# Coercion
+
+Elements of a vector must all be of the *same type*. If we try to combine *numbers* and *characters*, strange things can happen:
+
+```r
+giant_glass = c(1, 800, 54, "giant")
+giant_glass
+```
+
+```
+## [1] "1"     "800"   "54"    "giant"
+```
+
+```r
+class(giant_glass)
+```
+
+```
+## [1] "character"
+```
+
+--
+
+R **coerced** the data into *characters*! 
+- It thinks that, because you put a *character string* in the vector, you mean for the numbers in the vector to be characters as well. 
+
+--
+
+Why doesn't this give a numeric answer?
+
+
+```r
+mean(giant_glass)
+```
+
+---
+
+# Logical Vectors
+
+Another important type of vector is a **logical** vector. These must be either `TRUE` or `FALSE`. 
+
+Is 3 equal to 2?!
+
+```r
+test = (3 == 2)
+test
+```
+
+```
+## [1] FALSE
+```
+
+Note that while `=` (and `&lt;-`) are used for **assignment**, a double `==` is used to *test for equality*. 
+
+--
+
+**Example**
+
+Before you run this, try to guess what the result will be!
+
+```r
+test_vec = c(3 == 2, 3 == 3, 3 &lt; 4, 3 &lt; 2)
+test_vec
+```
+
+---
+
+# Other Functions
+
+`seq()` generates a *sequence* of numbers 
+
+
+```r
+# Vector:
+x = c(1,2,3)
+
+# We can also define a vector that is a sequence of numbers
+y = seq(1, 10, by = 2)
+y
+```
+
+```
+## [1] 1 3 5 7 9
+```
+
+```r
+# Combine x and y into one vector
+c(x, y)
+```
+
+```
+## [1] 1 2 3 1 3 5 7 9
+```
+
+When `by = 1`, we can use a shortcut...
+
+
+```r
+1:10
+```
+
+```
+##  [1]  1  2  3  4  5  6  7  8  9 10
+```
+
+---
+
+# Indexing
+
+In order to retrieve a *specific element* of a vector or data frame, we can use square brackets `[ ]`:
+
+```r
+# Retrieve the 5th element of mpg$hwy
+mpg$hwy[5]
+```
+
+```
+## [1] 26
+```
+
+```r
+# Retrieve the 5th THROUGH 10th elements of mpg$hwy
+mpg$hwy[5:10]
+```
+
+```
+## [1] 26 26 27 26 25 28
+```
+
+--
+
+We can get pretty creative with indexing...
+
+
+```r
+# Retrieve only mpg$hwy ABOVE 35
+mpg$hwy[mpg$hwy &gt; 35]
+```
+
+```
+## [1] 36 36 37 44 44 41
+```
+
+--
+
+**Note** (to Python users): In R indexing begins at `1`, *not* `0`. 
+
+---
+
+# Indexing
+
+Of course, the previous exercise is pretty meaningless since we don't know *which cars* have good fuel economy. 
+- We can index a data frame by specifying both the *row number(s)* and *column number(s)*. 
+
+
+```r
+# Access the 5th ROW across ALL columns
+mpg[5, ]
+```
+
+
+```r
+# Access the 5th ROW of the columns named "manufacturer" and "hwy"
+mpg[5, c("manufacturer", "hwy")] 
+```
+
+
+```r
+# Check which cars get more than 35 highway miles per gallon
+mpg[mpg$hwy &gt; 35, ]
+```
+
+---
+
+class: center, middle
+
+# R Markdown
+
+&lt;img src="rmarkdown_hex.png" width="50%" /&gt;
+
+---
+
+# R Markdown
+
+**R Markdown** provides a way for R (and python/SQL) users to produce a single file containing code, output, and notes. 
+
+.center[
+&lt;img src="rmarkdown.png" width="80%" /&gt;
+]
+
+Time for a **demo**! 
+
+Click **File** -- **New File** -- **R Notebook**
+
+---
+
+# R Markdown Activity
+
+Work on the following:
+
+- Create a new folder called `MATH228_Notes`. 
+
+- Save the R Markdown file you just opened to this folder as `01-Introduction_Notes`. You can either use **Save As...** from the File menu, or click on the blue disc icon in the top-left panel. 
+
+- What do you think are the differences between the *white* blocks of text and the *gray* blocks of text?
+
+- What happens when you click the **Knit** icon at the top of the R Markdown file?
+
+- Create a "code chunk" similar to the one with `plot(cars)` on lines 10-12, but type `summary(cars)`. 
+    - **Pro-tip**: Press [command]+[option]+[I] (Mac), or [Ctrl]+[Alt]+[I] (Windows) to create a blank code chunk!
+    
+---
+
+# Chunk Options
+
+- `echo = FALSE`: Don't *show* code
+
+- `eval = FALSE`: Don't *evaluate* the code
+
+- `include = FALSE`: Don't show the code or the results
+
+- `message = FALSE`: Don't show the messages
+    - This is usually relevant when you load a package but want to suppress the different "welcome" messages they might give. 
+    
+- `warning = FALSE`: Don't show warning messages
+
+- `out.width = "50%"` Makes a figure half the size (you can change the percentage to fit your needs). 
+
+In general, show your code and your results, but not your messages.
+
+---
+
+# What's to come?
+
+.center[
+&lt;img src="moderndive-flow.png" width="75%" /&gt;
+]
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"countIncrementalSlides": false,
+"highlightLines": true
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

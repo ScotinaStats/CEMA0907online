@@ -1,0 +1,366 @@
+---
+title: "CEMA 0907: Statistics in the Real World"
+subtitle: "Introduction to Data and R (PART 2)"
+author: "Anthony Scotina"
+date: 
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    css: my-theme.css
+    nature:
+      countIncrementalSlides: false
+      highlightLines: true
+---
+
+```{r xaringan-themer, include = FALSE}
+library(xaringanthemer)
+mono_accent(base_color = "#43418A")
+```
+
+```{r, include = FALSE}
+library(plyr)
+library(tidyverse)
+library(moderndive)
+library(infer)
+```
+
+
+# R Packages
+
+We will be using **R packages** extensively.
+- R is *open-source*, which means that members in the community can provide additional functions, data, or documentation in a *package*. 
+- Packages are *free* and can be easily downloaded. 
+
+--
+
+**Downloading packages in R Studio**
+
+> **Packages** tab (bottom-right) -- **Install** -- Type package name and press *Install*
+
+- Install the following packages (separate by a comma when typing the names):
+    - `tidyverse`: suite of packages that we will use *extensively*
+    - `moderndive`: package that accompanies the textbook
+    - `infer`: package for statistical inference
+    - `openintro`, `babynames`, `nycflights13`: packages with useful datasets
+    
+---
+
+# Loading R Packages
+
+We load R packages with the `library()` function. 
+- Note that, while you only **install** packages once, you must **load** them *each time you open a new R session*. 
+
+Run the following:
+```{r, message = FALSE, warning = FALSE}
+library(tidyverse)
+```
+
+Now this suite of packages (and their **dependencies**) is loaded!
+    
+---
+
+# Functions
+
+Once we define **objects**, **variables**, and/or **datasets**, much of data analysis involves applying a series of **functions** to the data. 
+
+We have already used several functions!
+- `c()`
+- `mean()`
+- `install.packages()` 
+
+--
+
+R functions typically require one or more *arguments*. 
+- Some arguments are *pre-set* to **default values**. 
+
+Run the following:
+```{r, eval = FALSE}
+?mean
+?sum
+?sqrt
+```
+
+---
+
+# Data Frames
+
+**Data frames**:  analogous to rectangular spreadsheets you would see in Excel or Google Spreadsheets. 
+
+- Rows of a data frame correspond to *observations*, and columns correspond to *variables*. 
+
+--
+
+The `mpg` data frame (contained in the `ggplot2` package, which is part of `tidyverse`), contains fuel economy data for 38 popular car models from [http://fueleconomy.gov](http://fueleconomy.gov). 
+
+Run the following two lines:
+```{r, eval = FALSE}
+library(tidyverse) # Run only if you haven't loaded this yet
+mpg
+```
+
+```{r, eval = FALSE}
+View(mpg)
+```
+
+---
+
+# `mpg` Data Frame
+
+A few notes on this dataset...
+
+- A "tibble" is a type of data frame in R. The `mpg` data frame has:
+    - 234 **rows**
+    - 11 **columns**
+    
+- The 11 columns correspond to 11 different **variables**. Some of which are: *manufacturer*, *model*, *cty*, *hwy*, etc.
+
+- In the console, we are shown the first 10 rows by default, since the rest can't fit on the screen. 
+
+---
+
+# Exploring Data
+
+The `$` operator allows us to explore a single variable within a data frame. For example, run the following in your console:
+```{r, eval = FALSE}
+mpg
+```
+
+```{r, eval = FALSE}
+mpg$manufacturer
+```
+
+```{r, eval = FALSE}
+mpg$cty
+```
+
+- The `$` extracts only the `manufacturer` or `cty` variable from the `mpg` data frame and returns it as a **vector**. 
+
+---
+
+# Exploring Data
+
+We can use the `$` operator to calculate descriptive statistics for variables within a dataset:
+
+```{r, comment = ""}
+mean(mpg$cty)
+```
+
+**What do you think `cty` means?**
+
+--
+
+You can get help in R by entering a `?` before the name of a function or data frame (*if it comes in an R package*), and a page will appear in the bottom-right panel. 
+
+- Try the following:
+```{r}
+?mpg
+```
+
+I use the help files **all the time**, and you should too, especially if you're stuck with a specific function!
+
+---
+
+# Types of Variables
+
+The object `mpg$city` is not one object, but *several*, contained within a **vector**. 
+
+The `class()` function gives the `class` of an object (e.g., *variable types*). 
+```{r}
+class(mpg$cty)
+```
+
+```{r}
+class(mpg$class)
+```
+
+---
+
+# Coercion
+
+Elements of a vector must all be of the *same type*. If we try to combine *numbers* and *characters*, strange things can happen:
+```{r}
+giant_glass = c(1, 800, 54, "giant")
+giant_glass
+class(giant_glass)
+```
+
+--
+
+R **coerced** the data into *characters*! 
+- It thinks that, because you put a *character string* in the vector, you mean for the numbers in the vector to be characters as well. 
+
+--
+
+Why doesn't this give a numeric answer?
+
+```{r, eval = FALSE}
+mean(giant_glass)
+```
+
+---
+
+# Logical Vectors
+
+Another important type of vector is a **logical** vector. These must be either `TRUE` or `FALSE`. 
+
+Is 3 equal to 2?!
+```{r}
+test = (3 == 2)
+test
+```
+
+Note that while `=` (and `<-`) are used for **assignment**, a double `==` is used to *test for equality*. 
+
+--
+
+**Example**
+
+Before you run this, try to guess what the result will be!
+```{r, eval = FALSE}
+test_vec = c(3 == 2, 3 == 3, 3 < 4, 3 < 2)
+test_vec
+```
+
+---
+
+# Other Functions
+
+`seq()` generates a *sequence* of numbers 
+
+```{r}
+# Vector:
+x = c(1,2,3)
+
+# We can also define a vector that is a sequence of numbers
+y = seq(1, 10, by = 2)
+y
+
+# Combine x and y into one vector
+c(x, y)
+```
+
+When `by = 1`, we can use a shortcut...
+
+```{r}
+1:10
+```
+
+---
+
+# Indexing
+
+In order to retrieve a *specific element* of a vector or data frame, we can use square brackets `[ ]`:
+```{r}
+# Retrieve the 5th element of mpg$hwy
+mpg$hwy[5]
+
+# Retrieve the 5th THROUGH 10th elements of mpg$hwy
+mpg$hwy[5:10]
+```
+
+--
+
+We can get pretty creative with indexing...
+
+```{r}
+# Retrieve only mpg$hwy ABOVE 35
+mpg$hwy[mpg$hwy > 35]
+```
+
+--
+
+**Note** (to Python users): In R indexing begins at `1`, *not* `0`. 
+
+---
+
+# Indexing
+
+Of course, the previous exercise is pretty meaningless since we don't know *which cars* have good fuel economy. 
+- We can index a data frame by specifying both the *row number(s)* and *column number(s)*. 
+
+```{r, eval = FALSE}
+# Access the 5th ROW across ALL columns
+mpg[5, ]
+```
+
+```{r, eval = FALSE}
+# Access the 5th ROW of the columns named "manufacturer" and "hwy"
+mpg[5, c("manufacturer", "hwy")] 
+```
+
+```{r, eval = FALSE}
+# Check which cars get more than 35 highway miles per gallon
+mpg[mpg$hwy > 35, ]
+```
+
+---
+
+class: center, middle
+
+# R Markdown
+
+```{r, echo = FALSE, out.width = "50%"}
+knitr::include_graphics("rmarkdown_hex.png")
+```
+
+---
+
+# R Markdown
+
+**R Markdown** provides a way for R (and python/SQL) users to produce a single file containing code, output, and notes. 
+
+.center[
+```{r, echo = FALSE, out.width = "80%"}
+knitr::include_graphics("rmarkdown.png")
+```
+]
+
+Time for a **demo**! 
+
+Click **File** -- **New File** -- **R Notebook**
+
+---
+
+# R Markdown Activity
+
+Work on the following:
+
+- Create a new folder called `MATH228_Notes`. 
+
+- Save the R Markdown file you just opened to this folder as `01-Introduction_Notes`. You can either use **Save As...** from the File menu, or click on the blue disc icon in the top-left panel. 
+
+- What do you think are the differences between the *white* blocks of text and the *gray* blocks of text?
+
+- What happens when you click the **Knit** icon at the top of the R Markdown file?
+
+- Create a "code chunk" similar to the one with `plot(cars)` on lines 10-12, but type `summary(cars)`. 
+    - **Pro-tip**: Press [command]+[option]+[I] (Mac), or [Ctrl]+[Alt]+[I] (Windows) to create a blank code chunk!
+    
+---
+
+# Chunk Options
+
+- `echo = FALSE`: Don't *show* code
+
+- `eval = FALSE`: Don't *evaluate* the code
+
+- `include = FALSE`: Don't show the code or the results
+
+- `message = FALSE`: Don't show the messages
+    - This is usually relevant when you load a package but want to suppress the different "welcome" messages they might give. 
+    
+- `warning = FALSE`: Don't show warning messages
+
+- `out.width = "50%"` Makes a figure half the size (you can change the percentage to fit your needs). 
+
+In general, show your code and your results, but not your messages.
+
+---
+
+# What's to come?
+
+.center[
+```{r, echo = FALSE, out.width = "75%"}
+knitr::include_graphics("moderndive-flow.png")
+```
+]
