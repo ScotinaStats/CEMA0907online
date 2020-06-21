@@ -1,0 +1,167 @@
+---
+title: "CEMA 0928: Statistics in the Real World"
+subtitle: "Scatterplots/Linegraphs"
+author: "Anthony Scotina"
+date: 
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    css: my-theme.css
+    nature:
+      countIncrementalSlides: false
+      highlightLines: true
+---
+
+```{r xaringan-themer, include = FALSE}
+library(xaringanthemer)
+mono_accent(base_color = "#43418A")
+```
+
+```{r, include = FALSE}
+library(tidyverse)
+library(mdsr)
+library(babynames)
+library(ggsci)
+library(nycflights13)
+library(ggthemes)
+```
+
+# Needed Packages
+
+```{r, eval = FALSE, message = FALSE, warning = FALSE}
+library(nycflights13)
+library(tidyverse) # Includes ggplot2
+library(mdsr)
+```
+
+**Install any packages that you haven't installed yet!** 
+
+---
+
+class: middle, center
+
+# Five Named Graphs: The 5NG
+
+---
+
+# 5NG#1: Scatterplots
+
+**Scatterplots** are one of the most *effective* forms of data visualization. 
+
+- In their simplest forms, they allow one to display the relationship between *two numerical variables*. 
+
+--
+
+Better yet, we've already seen how to make scatterplots!
+
+```{r, eval = FALSE}
+ggplot(data = CIACountries, mapping = aes(x = educ, y = gdp)) + 
+  geom_point()
+```
+
+---
+
+# Scatterplots
+
+In general, we use `geom_point()` to construct a scatterplot, where we can specify *additional aesthetics* (e.g., `color`, `size`) either within `geom_point()`, or *globally* within `ggplot()`. 
+
+We saw this earlier:
+```{r, eval = FALSE}
+ggplot(data = CIACountries, aes(x = educ, y = gdp, color = net_users)) + 
+  geom_point()
+```
+
+- Additionally, add `geom_smooth()` to add a smooth trend line to the plot:
+
+```{r, eval = FALSE}
+ggplot(data = CIACountries, aes(x = educ, y = gdp)) + 
+  geom_point() + 
+  geom_smooth()
+```
+
+---
+
+# Scatterplots
+
+Add `method = "lm"` and `se = FALSE` to `geom_smooth()` to (i) change the line to a *linear regression line* and (ii) remove the *confidence bands*. 
+```{r, message = FALSE, warning = FALSE, dpi = 300, out.width = "32%"}
+ggplot(data = CIACountries, aes(x = educ, y = gdp)) + 
+  geom_point() + 
+  geom_smooth(method = "lm", se = FALSE) + 
+  labs(x = "Education spending (% of GDP)", y = "GDP per capita ($/person)")
+```
+
+---
+
+# Scatterplots by group
+
+By adding the `color = net_users` *aesthetic* to `ggplot()`, different colors will be used for different levels of `net_users`, *and* we will also obtain different trend lines. 
+
+```{r, message = FALSE, warning = FALSE, dpi = 300, out.width = "35%"}
+ggplot(data = CIACountries, aes(x = educ, y = gdp, color = net_users)) + 
+  geom_point() + 
+  geom_smooth(method = "lm", se = FALSE) + 
+  labs(x = "Education spending (% of GDP)", y = "GDP per capita ($/person)", 
+       color = "Fraction of Internet users")
+```
+
+---
+
+# 5NG#2: Line Graphs (Time Series)
+
+**Line Graphs** are similar to scatterplots. They show the relationship between two *numerical* variables. 
+
+- However, linegraphs are useful when the `x` variable is *sequential*, or *ordered*. 
+
+- One of the most common ordered numerical variables is time. 
+
+For example, let's take a look at the `weather` dataset in the `nycflights13` package. Specifically, let's look at **November** *hourly temperature* at the **JFK airport** in New York:
+
+```{r}
+jfk_nov = weather %>%
+  filter(origin == "JFK" & month == 11)
+```
+
+(Don't worry about the syntax yet. Just copy and run!)
+
+---
+
+# Line Graphs
+
+```{r, message = FALSE, warning = FALSE, dpi = 300, out.width = "50%"}
+ggplot(jfk_nov, aes(x = time_hour, y = temp)) + 
+  geom_line()
+```
+
+---
+
+# Practice
+
+Using the `diamonds` dataset in the `ggplot2` package (and from a previous example), construct a scatterplot that displays the relationship between `carat` and `price`. 
+
+- Add the `color` aesthetic for the `cut` variable (five categories). 
+
+**Note**: This is a larger dataset than those we've used so far (> 50,000 rows), so run this code to take a sample of 1,000 diamonds if it otherwise takes a while to run. 
+
+```{r, eval = FALSE}
+diamonds = diamonds %>%
+  sample_n(1000)
+```
+
+(Solution on next slide)
+
+---
+
+# Solution
+
+```{r, out.width = "45%", dpi = 300}
+diamonds = diamonds %>%
+  sample_n(1000)
+
+ggplot(diamonds, aes(x = carat, y = price, color = cut)) + 
+  geom_point() + 
+  geom_smooth(method = "lm", se = FALSE)
+```
+
+
+
