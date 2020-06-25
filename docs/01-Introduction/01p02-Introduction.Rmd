@@ -328,7 +328,7 @@ Click **File** -- **New File** -- **R Notebook**
 
 Work on the following:
 
-- Create a new folder called `MATH228_Notes`. 
+- Create a new folder called `CEMA0928_Notes`. 
 
 - Save the R Markdown file you just opened to this folder as `01-Introduction_Notes`. You can either use **Save As...** from the File menu, or click on the blue disc icon in the top-left panel. 
 
