@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>CEMA 0907: Statistics in the Real World</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Anthony Scotina" />
+    <link rel="stylesheet" href="my-theme.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# CEMA 0907: Statistics in the Real World
+## Multiple Regression (PART 2)
+### Anthony Scotina
+
+---
+
+
+
+
+
+
+# Needed Packages
+
+
+```r
+library(tidyverse)
+library(moderndive)
+```
+
+---
+
+class: center, middle
+
+# Parallel Slopes Model
+
+---
+
+# Parallel Slopes Model
+
+When creating **multiple regression models** with *one numerical* and *one categorical* explanatory variable, we are *not* limited to models with an **interaction effect**. 
+
+- Another type of model we can use is known as the **parallel slopes model**. 
+
+--
+
+While **interaction models** can have regression lines with *different slopes and intercepts*, parallel slopes models *force* all lines to have the **same slope**. 
+
+---
+
+# Visualizing Parallel Slopes
+
+The `gg_parallel_slopes()` function in the `moderndive` package provides one way to plot a **parallel slopes model**. 
+
+
+```r
+gg_parallel_slopes(y = "price", num_x = "bedrooms", 
+                   cat_x = "waterfront", data = house_prices)
+```
+
+&lt;img src="06p02-Multiple_Regression_files/figure-html/unnamed-chunk-3-1.png" width="35%" /&gt;
+
+- **Note**: The *parallel regression lines* are not necessarily the **lines of best fit**, which is why `xyplot()` can't really help us here!
+
+---
+
+# Parallel Slopes Model
+
+.pull-left[
+![](06p02-Multiple_Regression_files/figure-html/unnamed-chunk-4-1.png)&lt;!-- --&gt;
+]
+
+.pull-right[
+Here, waterfront and non-waterfront homes have the *same slope*. 
+
+- They still have *different intercepts*, which is why the lines are at different heights. 
+
+- Irrespective of the number of bedrooms, *waterfront homes* tended to be more expensive than *non-waterfront homes*, on average. 
+]
+
+---
+
+# Fitting the Parallel Slopes Model
+
+
+```r
+lm_price_parallel = lm(price ~ bedrooms + waterfront, 
+                       data = house_prices)
+get_regression_table(lm_price_parallel)
+```
+
+```
+## # A tibble: 3 x 7
+##   term           estimate std_error statistic p_value lower_ci upper_ci
+##   &lt;chr&gt;             &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
+## 1 intercept       118862.     8573.      13.9       0  102058.  135665.
+## 2 bedrooms        122414.     2451.      50.0       0  117610.  127217.
+## 3 waterfrontTRUE 1138975.    26344.      43.2       0 1087338. 1190611.
+```
+
+The equation for the linear model is: `$$\widehat{price}=99306+128265(bedrooms)+1139217(waterfrontTRUE)$$`
+
+---
+
+# Interpreting the Coefficients
+
+`$$\widehat{price}=99306+128265(bedrooms)+1139217(waterfrontTRUE)$$`
+
+The coefficients `\(b_{0}=99306\)` and `\(b_{2}=1139217\)` acts as they did in the *interaction model*: 
+
+- `\(b_{0}=99306\)` is the `intercept` for *non-waterfront homes*.
+    - The **average** price is &lt;span&gt;&amp;#36;&lt;/span&gt;99,306 for *non-waterfront homes* with 0 *bedrooms*.
+
+--
+
+- `\(b_{2}=1139217\)` is the **offset** in the intercept for *waterfront homes*. 
+    - The **average** price is &lt;span&gt;&amp;#36;&lt;/span&gt;99,306+&lt;span&gt;&amp;#36;&lt;/span&gt;1,139,217 = &lt;span&gt;&amp;#36;&lt;/span&gt;1,238,523 for *waterfront homes* with 0 *bedrooms*. 
+
+---
+
+# Interpreting the Coefficients
+
+`$$\widehat{price}=99306+128265(bedrooms)+1139217(waterfrontTRUE)$$`
+
+Unlike in the *interaction model*, there is only one slope term in the *parallel slopes model*:
+
+- `\(b_{1}=128265\)` is the slope for *waterfront* **and** *non-waterfront homes*. 
+    - **Holding** `waterfront` **fixed** (i.e., for *one level of* `waterfront`): For every additional `bedroom`, there is an associated increase of, **on average**, &lt;span&gt;&amp;#36;&lt;/span&gt;128,265 on the price of the home. 
+
+---
+
+# Parallel Slopes Model
+
+`$$\widehat{price}=99306+128265(bedrooms)+1139217(waterfrontTRUE)$$`
+
+For *waterfront homes*: `$$\widehat{price}=1238523+\underline{128265}(bedrooms)$$`
+
+For *non-waterfront homes*: `$$\widehat{price}=99306+\underline{128265}(bedrooms)$$`
+
+---
+
+# Comparing the Models
+
+&lt;img src="06p02-Multiple_Regression_files/figure-html/unnamed-chunk-6-1.png" width="50%" /&gt;&lt;img src="06p02-Multiple_Regression_files/figure-html/unnamed-chunk-6-2.png" width="50%" /&gt;
+
+So... why would we *ever* use a **parallel slopes model**?
+- The lines in the left-hand plot don't look parallel, so why force them to be?
+- We'll get back to this, but as a short answer: Sometimes **simple** is better!
+
+---
+
+# Practice
+
+The `Credit` dataset (on Moodle, and in the `ISLR` package) contains financial data on a sample of `\(n=400\)` individuals. 
+
+
+```r
+View(Credit)
+```
+
+Using these data, model `Balance` (credit card balance) as a function of `Income` (income in 10,000 dollars) and `Student` (whether or not the individual is a student):
+- *y* = `Balance`
+- `\(x_{1}\)` = `Income`
+- `\(x_{2}\)` = `Student`
+
+Using appropriate visualizations, decide whether an interaction model is appropriate. 
+
+---
+
+class: center, middle
+
+# Two (or more) Numerical Explanatory Variables
+
+---
+
+# Two Numerical Explanatory Variables
+
+Instead of examining a model with *one numerical* and *one categorical* explanatory, let's look at a model with **two numerical explanatory variables**. 
+
+Using the `house_prices` data:
+
+- *y* = `price`
+
+- `\(x_{1}\)` = `bedrooms`
+
+- `\(x_{2}\)` = `sqft_living` (square footage of the home, from `?house_prices`)
+
+In other words, we will fit the model: `$$\widehat{price} = b_{0}+b_{1}(bedrooms)+b_{2}(sqft.living)$$`
+
+---
+
+# Correlation Matrix
+
+Because we have several **numerical** variables, we can calculate several pairwise **correlation coefficients**. 
+- (Recall that one cannot calculate a correlation coefficient with categorical variables.)
+
+While we could do this with `cor()` several times depending on the number of comparisons, it is much more efficient to construct a **correlation matrix**:
+
+
+```r
+house_prices %&gt;%
+  select(price, bedrooms, sqft_living) %&gt;%
+  cor()
+```
+
+```
+##                 price  bedrooms sqft_living
+## price       1.0000000 0.3083496   0.7020351
+## bedrooms    0.3083496 1.0000000   0.5766707
+## sqft_living 0.7020351 0.5766707   1.0000000
+```
+
+---
+
+# Correlation Matrix
+
+
+```r
+house_prices %&gt;%
+  select(price, bedrooms, sqft_living) %&gt;%
+  cor()
+```
+
+```
+##                 price  bedrooms sqft_living
+## price       1.0000000 0.3083496   0.7020351
+## bedrooms    0.3083496 1.0000000   0.5766707
+## sqft_living 0.7020351 0.5766707   1.0000000
+```
+
+- `\(r(price,bedrooms)=0.32\)`. 
+
+--
+
+- `\(r(price, sqft.living)=0.70\)` means that there is a *relatively strong*, positive, linear correlation between price per home and square footage of the home. 
+
+--
+
+- `\(r(bedrooms, sqft.living)=0.59\)` means that there is a *moderate*, positive, linear correlation between number of bedrooms per home and square footage of the home. 
+    - When two **explanatory variables** are correlated, we say that there is a high degree of **multicollinearity**. 
+
+---
+
+# Data Visualizations
+
+.pull-left[
+
+```r
+ggplot(data = house_prices, aes(x = sqft_living, y = price)) + 
+  geom_point() + 
+  geom_smooth(method = "lm", se = FALSE) + 
+  labs(x = "Square Footage of Home", y = "Price (in $)")
+```
+
+![](06p02-Multiple_Regression_files/figure-html/unnamed-chunk-10-1.png)&lt;!-- --&gt;
+]
+
+.pull-right[
+
+```r
+ggplot(data = house_prices, aes(x = bedrooms, y = sqft_living)) + 
+  geom_point() + 
+  geom_smooth(method = "lm", se = FALSE) + 
+  labs(x = "Number of Bedrooms", y = "Square Footage of Home")
+```
+
+![](06p02-Multiple_Regression_files/figure-html/unnamed-chunk-11-1.png)&lt;!-- --&gt;
+]
+
+---
+
+# Fitting the Model
+
+To fit a model of this form in R, we use `lm()` exactly as we did in previous examples:
+
+
+```r
+lm_multiple = lm(price ~ bedrooms + sqft_living, data = house_prices)
+get_regression_table(lm_multiple)
+```
+
+```
+## # A tibble: 3 x 7
+##   term        estimate std_error statistic p_value lower_ci upper_ci
+##   &lt;chr&gt;          &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
+## 1 intercept     79469.   6605.        12.0       0   66524.   92415.
+## 2 bedrooms     -57067.   2308.       -24.7       0  -61591.  -52542.
+## 3 sqft_living     314.      2.34     134.        0     309.     319.
+```
+
+The equation of the *regression plane* is: `$$\widehat{price}=90034-62062(bedrooms)+317(sqft.living)$$`
+
+---
+
+# Interpreting the Regression Coefficients
+
+`$$\widehat{price}=90034-62062(bedrooms)+317(sqft.living)$$`
+
+- `\(b_{0}=90034\)`: The average price is &lt;span&gt;&amp;#36;&lt;/span&gt;90,034 for homes with *0 bedrooms* **AND** *0 square footage of space*. 
+    - This doesn't make sense in context; using `sqft_living=0` is **extrapolation**!
+    
+--
+
+- `\(b_{1}=-62062\)`: *Taking all other variables in our model into account* (i.e., holding them fixed), for every additional bedroom, there is an associated **decrease** of &lt;span&gt;&amp;#36;&lt;/span&gt;62,062 in price per home, on average. 
+
+--
+
+- `\(b_{2}=317\)`: *Taking all other variables in our model into account*, for every additional square foot of living space, there is an associated **increase** of &lt;span&gt;&amp;#36;&lt;/span&gt;317 in price per home, on average. 
+
+---
+
+# Interpreting the Regression Coefficients
+
+To better understand what these interpretations mean, let's consider a **simple regression model** and a **multiple regression model** side-by-side:
+
+
+```r
+lm_simple = lm(price ~ bedrooms, data = house_prices)
+get_regression_table(lm_simple)
+```
+
+```
+## # A tibble: 2 x 7
+##   term      estimate std_error statistic p_value lower_ci upper_ci
+##   &lt;chr&gt;        &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
+## 1 intercept  129802.     8932.      14.5       0  112295.  147309.
+## 2 bedrooms   121716.     2554.      47.7       0  116710.  126723.
+```
+
+```r
+lm_multiple = lm(price ~ bedrooms + sqft_living, data = house_prices)
+get_regression_table(lm_multiple)
+```
+
+```
+## # A tibble: 3 x 7
+##   term        estimate std_error statistic p_value lower_ci upper_ci
+##   &lt;chr&gt;          &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
+## 1 intercept     79469.   6605.        12.0       0   66524.   92415.
+## 2 bedrooms     -57067.   2308.       -24.7       0  -61591.  -52542.
+## 3 sqft_living     314.      2.34     134.        0     309.     319.
+```
+
+---
+
+# Interpreting the Regression Coefficients
+
+- **Simple**: `\(\widehat{price}=110316+127548(bedrooms)\)`
+- **Multiple**: `\(\widehat{price}=90034-62062(bedrooms)+317(sqft.living)\)`
+
+Introducing `sqft_living` into the model yielded a `\(b_{1}\)` coefficient with **opposite sign**!
+- Changed from `\(127548\)` to `\(-62062\)`
+
+--
+
+In the multiple regression model, the estimated coefficient `\(b_{1}=-62062\)` does not mean that homes with *more bedrooms* are generally *worth less*. 
+- It must be interpreted while taking into account the *other explanatory variable* (`sqft_living`). 
+
+--
+
+Let's consider a home with a *fixed amount of living area*:
+- Those which devote more area to bedrooms must either (a) have smaller bedrooms; or (b) have less living area
+- This could reduce the home's value!
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"countIncrementalSlides": false,
+"highlightLines": true
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

@@ -1,0 +1,146 @@
+---
+title: "CEMA 0907: Statistics in the Real World"
+subtitle: "Understanding Confidence Intervals"
+author: "Anthony Scotina"
+date: 
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    css: my-theme.css
+    nature:
+      highlightLines: true
+---
+
+```{r xaringan-themer, include = FALSE}
+library(xaringanthemer)
+mono_accent(base_color = "#43418A")
+```
+
+```{r, include = FALSE}
+library(tidyverse)
+library(moderndive)
+library(infer)
+```
+
+# Needed Packages
+
+```{r}
+library(tidyverse)
+library(moderndive)
+library(infer)
+```
+
+---
+
+class: center, middle
+
+# The `infer` Package for Statistical Inference
+
+---
+
+# `infer`
+
+The `infer` package provides a useful resource in building **confidence intervals** and conducting **hypothesis tests** (more on those later). 
+
+There are several *verb-named functions* that build in order...
+
+---
+
+# Step 1: `specify()`
+
+The `specify()` function is used primarily to choose which variables will be the focus of the statistical inference.
+- This is done using the `response = ` argument:
+
+```{r, comment = ""}
+pennies_sample %>%
+  specify(response = year)
+```
+
+---
+
+# Step 2: `generate()` replicates
+
+After `specify()`-ing the main variable of interest, we use `generate()` to generate **bootstrap samples** (i.e., *replicates*) from the original sample. 
+- Here, we can easily create 1,000 bootstrap samples:
+```{r}
+thousand_bootstrap_samples = pennies_sample %>%
+  specify(response = year) %>%
+  generate(reps = 1000)
+```
+
+If you use `View(thousand_bootstrap_samples)`, you will see that there are 40,000 rows! 
+- We took 1,000 bootstrap samples, each of size 40. 
+
+---
+
+# Step 3: `calculate()` summary statistics
+
+Once we have 1,000 **bootstrap samples**, we need to calculate a **summary statistic** for each sample. 
+- In this example, the *summary statistic* is the **mean**. 
+```{r, message = FALSE}
+bootstrap_distribution = pennies_sample %>% 
+  specify(response = year) %>% 
+  generate(reps = 1000) %>% 
+  calculate(stat = "mean")
+```
+
+--
+
+This generates a data frame with 1,000 rows: each row containing the sample mean of the respective **bootstrap sample**. 
+- This set of 1,000 sample means represents a **bootstrap distribution**. 
+
+---
+
+# Step 4: `visualize()` the results
+
+.center[
+```{r, echo = FALSE}
+knitr::include_graphics("infer.png")
+```
+]
+
+---
+
+# Step 4: `visualize()` the results
+
+```{r, out.width = "50%", warning = FALSE}
+x_bar = pennies_sample %>%
+  summarize(stat = mean(year))
+bootstrap_distribution %>%
+  visualize(obs_stat = x_bar)
+```
+
+---
+
+class: center, middle
+
+# Confidence Intervals
+
+---
+
+# Confidence Intervals
+
+A **confidence interval** gives a range of *plausible values* for a population parameter. 
+- Using *only* a **sample statistic** to estimate a parameter is like fishing in a murky lake with a spear, and using a confidence interval is like fishing with a net.
+
+.center[
+```{r, echo = FALSE, out.width = "50%"}
+knitr::include_graphics("fishing.png")
+```
+]
+
+---
+
+# Confidence Intervals
+
+Confidence intervals depend on a specified **confidence level**, with *higher* confidence levels corresponding to *wider* confidence intervals and *lower* confidence levels corresponding to *narrower* confidence intervals. 
+- Common **confidence levels** include 90%, 95%, and 99%.
+
+--
+
+Using the **bootstrap distribution** (i.e., `bootstrap_distribution` from earlier), there are two ways we can obtain a confidence interval for the population mean year on US pennies:
+1. The **percentile method**
+2. The **standard error method**
+
+
+

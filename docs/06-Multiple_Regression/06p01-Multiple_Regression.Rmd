@@ -1,0 +1,302 @@
+---
+title: "CEMA 0907: Statistics in the Real World"
+subtitle: "Multiple Regression (PART 1)"
+author: "Anthony Scotina"
+date: 
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    css: my-theme.css
+    nature:
+      countIncrementalSlides: false
+      highlightLines: true
+---
+
+```{r xaringan-themer, include = FALSE}
+library(xaringanthemer)
+mono_accent(base_color = "#4682B4") #3E8A83?
+```
+
+```{r, include = FALSE}
+library(tidyverse)
+library(moderndive)
+```
+
+# Needed Packages
+
+```{r}
+library(tidyverse)
+library(moderndive)
+```
+
+---
+
+# Multiple Regression
+
+**Does bedrooms per house give us the full story?**
+
+```{r, echo = FALSE, out.width = "50%"}
+ggplot(data = house_prices, aes(x = bedrooms, y = price)) + 
+  geom_point() + 
+  geom_smooth(method = "lm", se = FALSE) + 
+  labs(x = "Bedrooms per home", y = "Price (in $)")
+```
+
+---
+
+# Multiple Regression
+
+**Does bedrooms per house give us the full story?**
+
+- *No.*
+
+```{r, echo = FALSE, out.width = "50%"}
+ggplot(data = house_prices, aes(x = bedrooms, y = price, color = waterfront)) + 
+  geom_point(alpha = 0.4) + 
+  geom_smooth(method = "lm", se = FALSE) + 
+  labs(x = "Bedrooms per home", y = "Price (in $)")
+```
+
+---
+
+# Multiple Regression
+
+**So far**, we have looked at the following *linear regression models* using the `house_prices` data:
+
+- $\widehat{price} = 110316 + 127548*(bedrooms)$
+    - For every additional `bedroom`, there is an associated increase of, **on average**, <span>&#36;</span>127,548 on the price of the home. 
+
+--
+
+- $\widehat{price} = 531559 + 1130317*(waterfrontTRUE)$
+    - Homes with a *waterfront view* will cost, **on average**, <span>&#36;</span>1,130,317 more than *non-waterfront homes*. 
+
+--
+
+**Why not all at once?**
+
+- $\widehat{price} = b_{0}+b_{1}*(bedrooms)+b_{2}*(waterfrontTRUE)$
+
+---
+
+# Why multiple regression?
+
+It is rare to have a single explanatory (*x*) variable in a study. 
+
+- A *more complex model* can frequently help with **prediction**. 
+
+- The **multiple regression model** is of the form $$\hat{y}=b_{0}+b_{1}x_{1}+b_{2}x_{2}+\cdots+b_{k}x_{k}$$
+where there are $k$ explanatory variables. 
+
+---
+
+# One Categorical AND One Explanatory Variable
+
+$$\widehat{price} = b_{0}+b_{1}*(bedrooms)+b_{2}*(waterfrontTRUE)$$
+
+**Question**: Does the *association* between `price` and `bedrooms` change when *simultaneously* considering homes with a *waterfront view*?
+
+--
+
+In this **multiple regression** model, we have:
+
+- A **numerical** response variable (*y*), the price of a home
+
+- *Two* **explanatory variables**:
+    - A *numerical explanatory variable*, $x_{1}$, the number of bedrooms per home
+    - A *categorical explanatory variable*, $x_{2}$, whether or not the home has a waterfront view
+    
+---
+
+# Data Visualization
+
+```{r, out.width = "50%"}
+ggplot(data = house_prices, aes(x = bedrooms, y = price, color = waterfront)) + 
+  geom_point(alpha = 0.4) + 
+  geom_smooth(method = "lm", se = FALSE) + 
+  labs(x = "Bedrooms per home", y = "Price (in $)")
+```
+
+---
+
+# Data Visualization
+
+.pull-left[
+```{r, echo = FALSE}
+ggplot(data = house_prices, aes(x = bedrooms, y = price, color = waterfront)) + 
+  geom_point(alpha = 0.4) + 
+  geom_smooth(method = "lm", se = FALSE) + 
+  labs(x = "Bedrooms per home", y = "Price (in $)")
+```
+]
+
+.pull-right[
+**Some observations**
+
+- Both slopes are **positive**. 
+
+- But, the slope for *waterfront view homes* is **more positive**. 
+
+In other words, the average house price per bedroom is *higher* for *waterfront view homes*. 
+]
+
+---
+
+# Interaction Model
+
+We will quantify the relationship between the response *y* and the *two* explanatory variables using a type of multiple regression model known as an **interaction model**. 
+
+```{r}
+lm_price_interaction = lm(price ~ bedrooms + waterfront + 
+                            bedrooms*waterfront, 
+                          data = house_prices)
+get_regression_table(lm_price_interaction)
+```
+
+In this **interaction model**, the model formula was not only of the form `y ~ x1 + x2`, but it included an **interaction term**, `x1*x2`. 
+
+---
+
+# Interaction Model
+
+```{r, echo = FALSE}
+knitr::kable(get_regression_table(lm_price_interaction)[,-c(4,5)], format = "html")
+```
+
+First, recall that *non-waterfront homes* (`waterfront = FALSE`) serves as the **reference** (or *baseline*) group. 
+- Therefore, the `intercept` term is the **intercept** *for only the non-waterfront homes*. 
+
+- Similarly, the `bedrooms` term is the **slope** *for only the non-waterfront homes*.
+
+What about the slope and intercept for *waterfront homes*?
+
+---
+
+# Linear Model Equation
+
+```{r, echo = FALSE}
+knitr::kable(get_regression_table(lm_price_interaction)[,-c(4,5)], format = "html")
+```
+
+We can write the equation of the linear model *with interaction term* as 
+\begin{align*}
+\widehat{price}&=114143+123862(bedrooms)-236296(waterfrontTRUE)\\
+&\ \ \ \ +416652(bedrooms:waterfrontTRUE)
+\end{align*}
+
+---
+
+# Interaction Model
+
+\begin{align*}
+\widehat{price}&=114143+123862(bedrooms)-236296(waterfrontTRUE)\\
+&\ \ \ \ +416652(bedrooms:waterfrontTRUE)
+\end{align*}
+
+The value for `waterfrontTRUE` of $-236296$ is *not* the intercept for waterfront homes.
+- Rather, it serves as the **offset** in the intercept for waterfront homes *relative to non-waterfront homes*. 
+
+- The *intercept* for *waterfront homes* is `intercept` + `waterfrontTRUE` = $114143-236296$ = $-122153$.
+
+--
+
+**Uhhh wut?**
+
+- I thought waterfront homes were *more expensive*!!!
+
+---
+
+# The Interaction Term
+
+\begin{align*}
+\widehat{price}&=114143+123862(bedrooms)-236296(waterfrontTRUE)\\
+&\ \ \ \ +416652(bedrooms:waterfrontTRUE)
+\end{align*}
+
+The `bedrooms:waterfrontTRUE` is *not* the slope for age for waterfront homes. 
+- Rather, it serves as the **offset** in the slope for waterfront homes. 
+
+The *slope* for *waterfront* homes is `bedrooms` + `bedrooms:waterfrontTRUE` = $123862+416652$ = $540514$. 
+
+---
+
+# Putting It All Together
+
+\begin{align*}
+\widehat{price}&=114143+123862(bedrooms)-236296(waterfrontTRUE)\\
+&\ \ \ \ +416652(bedrooms:waterfrontTRUE)
+\end{align*}
+
+Because there are *two levels* of the categorical explanatory variable (`TRUE` and `FALSE`), we can write the regression model as equations for *two separate regression lines*:
+
+- For `waterfront = TRUE`, $$\widehat{price}=-122153+540514(bedrooms)$$
+- For `waterfront = FALSE`, $$\widehat{price}=114143+123862(bedrooms)$$
+
+---
+
+# Putting It All Together
+
+.pull-left[
+```{r, echo = FALSE}
+ggplot(data = house_prices, aes(x = bedrooms, y = price, color = waterfront)) + 
+  geom_point(alpha = 0.4) + 
+  geom_smooth(method = "lm", se = FALSE) + 
+  labs(x = "Bedrooms per home", y = "Price (in $)")
+```
+]
+
+.pull-right[
+- For `waterfront = TRUE`, $$\widehat{price}=-122153+540514(bedrooms)$$
+- For `waterfront = FALSE`, $$\widehat{price}=114143+123862(bedrooms)$$
+]
+
+---
+
+# Interpreting the Regression Lines
+
+For `waterfront = TRUE`, $$\widehat{price}=-122153+540514(bedrooms)$$
+
+- For **homes with a waterfront view**: For every additional `bedroom`, there is an associated increase of, **on average**, <span>&#36;</span>540,514 on the price of the home. 
+
+--
+
+For `waterfront = FALSE`, $$\widehat{price}=114143+123862(bedrooms)$$
+
+- For **homes without a waterfront view**: For every additional `bedroom`, there is an associated increase of, **on average**, <span>&#36;</span>123,862 on the price of the home. 
+
+--
+
+Thus, our model is suggesting that the number of bedrooms impacts the price of *waterfront homes* **more** than it does for *non-waterfront homes*. 
+
+---
+
+# Summary of Interaction Model
+
+\begin{align*}
+\widehat{price}&=114143+123862(bedrooms)-236296(waterfrontTRUE)\\
+&\ \ \ \ +416652(bedrooms:waterfrontTRUE)
+\end{align*}
+
+- $b_{0}=114143$ is the `intercept` for *non-waterfront homes*.
+
+- $b_{1}=123862$ is the slope for `bedrooms` for *non-waterfront homes*.
+
+- $b_{2}=-236296$ is the **offset** in the intercept for *waterfront homes*. 
+
+- $b_{3}=416652$ is the **offset** in the slope for *waterfront homes*. 
+
+---
+
+# Back to Interaction Effects
+
+Why do we call that additional term the **interaction effect**?
+
+- We say there is an interaction effect if the *associated effect* of one variable *depends* on the value of another variable. In other words, the two variables are “*interacting*” with each other.
+
+--
+
+For a given home in King County, WA, there might be an associated effect of `bedrooms` *by itself*. 
+
+There might also be an associated effect of `waterfront` homes *by itself*. 
+
+- **But** when `bedrooms` and `waterfront` homes are considered *together*, there might be *an additional effect* beyond those present when considering the variables separately. 

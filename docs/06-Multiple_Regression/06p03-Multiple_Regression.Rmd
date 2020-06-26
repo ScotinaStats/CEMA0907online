@@ -1,0 +1,174 @@
+---
+title: "CEMA 0907: Statistics in the Real World"
+subtitle: "Model Selection"
+author: "Anthony Scotina"
+date: 
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    css: my-theme.css
+    nature:
+      countIncrementalSlides: false
+      highlightLines: true
+---
+
+```{r xaringan-themer, include = FALSE}
+library(xaringanthemer)
+mono_accent(base_color = "#4682B4") #3E8A83?
+```
+
+```{r, include = FALSE}
+library(tidyverse)
+library(moderndive)
+```
+
+# Needed Packages
+
+```{r}
+library(tidyverse)
+library(moderndive)
+```
+
+---
+
+class: center, middle
+
+# Model Selection
+
+---
+
+# Model Selection
+
+**When do we use an interaction model or a parallel slopes model?!**
+
+- If *lines of best fit* based on different levels of explanatory variables aren't *parellel*, why would we **force** them to be parallel?
+
+```{r, echo = FALSE, out.width = "40%", dpi = 300}
+ggplot(house_prices, aes(x = bedrooms, y = price, color = waterfront)) + 
+  geom_point() + 
+  labs(x = "Bedrooms per home", y = "Price (in $)", title = "Interaction Model") + 
+  geom_smooth(method = "lm", se = FALSE) +
+  theme_bw()
+ggplot(house_prices, aes(x = bedrooms, y = price, color = waterfront)) + 
+  geom_point() + 
+  geom_parallel_slopes(se = FALSE) +
+  labs(x = "Bedrooms per home", y = "Price (in $)", title = "Parallel Slopes Model") + 
+  theme_bw() 
+```
+
+---
+
+# Model Selection
+
+Sometimes, **simpler** solutions are more likely to be *correct* than **complex** solutions. 
+
+Using `price` as the response:
+
+- The **interaction model** was
+\begin{align*}
+\widehat{price}&=114143+123862(bedrooms)-236296(waterfrontTRUE)\\
+&\ \ \ \ +416652(bedrooms:waterfrontTRUE)
+\end{align*}
+
+- The **parallel slopes model** was $$\widehat{price}=99306+128265(bedrooms)+1139217(waterfrontTRUE)$$
+
+--
+
+The interaction model is more *complex* due to the extra ( $b_{3}=416652$) term. 
+
+- Is the *extra complexity* warranted?
+
+- (Arguably, yes. But let's look at an example where it is less obvious...)
+
+---
+
+# `MA_schools`
+
+The `MA_schools` dataset in the `moderndive` package contains data on MA public high schools in 2017. 
+
+```{r, eval = FALSE}
+View(MA_schools)
+?MA_schools
+```
+
+We will model `average_sat_math` (*y*) as a function of:
+
+- `perc_disadvan` ( $x_{1}$): percent of study body considered "economically disadvantaged"
+
+- `size` ( $x_{2}$): size of enrollment (`small`, `medium`, `large`)
+
+---
+
+# Practice
+
+Using `ggplot()`, construct the scatterplot using the **interaction model**. 
+
+Using `gg_parallel_slopes()`, construct the scatterplot using the **parallel slopes model**. 
+
+---
+
+# Comparing the Models
+
+At least visually, the models don't appear very different!
+- Now let's compare the **regression tables**. 
+
+--
+
+```{r}
+lm_mass_int = lm(average_sat_math ~ perc_disadvan + size + 
+                   perc_disadvan*size, 
+                 data = MA_schools)
+get_regression_table(lm_mass_int)
+```
+
+---
+
+# Interaction Model
+
+```{r, echo = FALSE}
+lm_mass_int = lm(average_sat_math ~ perc_disadvan + size + 
+                   perc_disadvan*size, 
+                 data = MA_schools)
+get_regression_table(lm_mass_int)
+```
+
+The interaction model is 
+\begin{align*}
+  \widehat{avg.sat.math}&=594-2.93(perc.disadvan)-17.8(size:medium)\\
+  & \ \ \ \ -13.3(size:large)+0.146(perc.disadvan*size:medium)\\
+  & \ \ \ \ +0.189(perc.disadvan*size:large)
+\end{align*}
+
+---
+
+# Paraellel Slopes Model
+
+```{r}
+lm_mass_par = lm(average_sat_math ~ perc_disadvan + size, data = MA_schools)
+get_regression_table(lm_mass_par)
+```
+
+The parallel slopes model is 
+\begin{align*}
+  \widehat{avg.sat.math}&=594-2.78(perc.disadvan)\\
+  &\ \ \ \ -11.9(size:medium)-6.36(size:large)
+\end{align*}
+
+---
+
+# Comparing the Models
+
+Among other things, the **offsets** for the different slopes in the *interaction model* are very small relative to baseline. 
+
+- $b_{3}=0.146$ means that the slope for *medium* schools is only 0.146 points higher than baseline (-2.93). 
+
+- $b_{4}=0.189$ means that the slope for *large* schools is only 0.189 points higher than baseline (-2.93). 
+
+--
+
+The *p*-values for those estimated coefficients are also small. 
+- This is *beyond the scope of this class*, but the large *p*-values in the regression output mean something! 
+
+--
+
+We just did a *very simple* form of **model selection**!

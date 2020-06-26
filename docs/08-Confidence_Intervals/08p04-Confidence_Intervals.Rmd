@@ -1,0 +1,220 @@
+---
+title: "CEMA 0907: Statistics in the Real World"
+subtitle: "Interpreting Confidence Intervals"
+author: "Anthony Scotina"
+date: 
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    css: my-theme.css
+    nature:
+      highlightLines: true
+      countIncrementalSlides: false
+---
+
+```{r xaringan-themer, include = FALSE}
+library(xaringanthemer)
+mono_accent(base_color = "#43418A")
+```
+
+```{r, include = FALSE}
+library(tidyverse)
+library(moderndive)
+library(infer)
+```
+
+# Needed Packages
+
+```{r}
+library(tidyverse)
+library(moderndive)
+library(infer)
+```
+
+---
+
+class: center, middle
+
+# Interpreting the Confidence Interval
+
+---
+
+# Interpreting the Confidence Interval
+
+We have done a lot of calculations in this module, but *what does it all mean*?
+
+The purpose of confidence intervals is to provide a range of plausible values for an *unknown* parameter (in this case, the population mean $\mu$). 
+- Using the **percentile method**, one such interval is $[1991, 2000]$. 
+
+--
+
+Let's modify `pennies_sample` to **simulate** a population of US pennies.
+```{r, comment = ""}
+pennies_pop = pennies_sample %>%
+  sample_n(10000, replace = TRUE)
+
+mean(pennies_pop$year)
+```
+
+--
+
+Thus, $\mu=1995$ (approx.) which *falls in the confidence interval*. 
+
+---
+
+# Using a new `pennies_sample`
+
+We can use the `infer` pipeline to re-do the entire set of exercises today, but using a *new* sample of pennies from the `pennies` data frame:
+```{r, echo = FALSE}
+set.seed(45)
+```
+
+```{r, message = FALSE}
+percentile_ci2 = pennies_pop %>%
+  rep_sample_n(size = 40, reps = 1) %>%
+  specify(response = year) %>% 
+  generate(reps = 1000) %>% 
+  calculate(stat = "mean") %>% 
+  get_ci()
+percentile_ci2
+```
+
+This new confidence interval *also* does not contain $\mu$ (1990). 
+
+---
+
+# Calculating Many CIs
+
+We can repeat this process 100 times (don't worry about the code), and generate 100 95% confidence intervals:
+
+.center[
+```{r, echo = FALSE, dpi = 300, warning = FALSE, out.width = "60%"}
+set.seed(12)
+  
+# Function to run infer pipeline
+bootstrap_pipeline <- function(sample_data){
+  sample_data %>% 
+    specify(formula = year ~ NULL) %>% 
+    generate(reps = 100, type = "bootstrap") %>% 
+    calculate(stat = "mean")
+}
+
+set.seed(12)
+  
+# Compute nested data frame with sampled data, sample proportions, all 
+# bootstrap replicates, and se_ci
+pennies_se_cis <- pennies_pop %>% 
+  rep_sample_n(size = 50, reps = 100, replace = FALSE) %>% 
+  group_by(replicate) %>% 
+  nest() %>% 
+  mutate(sample_mean = map_dbl(data, ~mean(.x$year))) %>%
+  # run infer pipeline on each nested tibble to generated bootstrap replicates
+  mutate(bootstraps = map(data, bootstrap_pipeline)) %>% 
+  group_by(replicate) %>% 
+  # Compute 95% se CI's for each nested element
+  mutate(se_ci = map(bootstraps, get_ci, type = "se", level = 0.95,
+                     point_estimate = sample_mean))
+  
+# Identify if confidence interval captured true p
+se_cis <- pennies_se_cis %>% 
+  unnest(se_ci) %>% 
+  mutate(captured = lower <= 1995.48 & 1995.48 <= upper)
+# Plot them!
+ggplot(se_cis) +
+  geom_segment(aes(
+    y = replicate, yend = replicate, x = lower, xend = upper, 
+    alpha = factor(captured, levels = c("TRUE", "FALSE"))
+  )) +
+  geom_point(
+    aes(
+      x = sample_mean, y = replicate,
+      alpha = factor(captured, levels = c("TRUE", "FALSE"))
+    ), 
+    show.legend = FALSE, size = 1) +
+  labs(x = expression("Average Year"), y = "Confidence Interval Number", 
+       alpha = "Captured") +
+  geom_vline(xintercept = 1995.48, color = "red") + 
+  #coord_cartesian(xlim = c(0.1, 0.7)) + 
+  theme_light() + 
+  theme(panel.grid.major.y = element_blank(), panel.grid.minor.y = element_blank(),
+        panel.grid.minor.x = element_blank())
+```
+]
+
+---
+
+# Calculating Many CIs
+
+Using 95% as our **confidence level**, *approximately* 95% of the CIs contained the population mean $\mu=1995$, while 8 did not. 
+
+**What does this mean?**
+- The procedure we have used to generate confidence intervals is "*95% reliable*" in that we can expect it to include the true population parameter *approximately* 95% of the time *if the process is repeated*.
+
+---
+
+# Back to our example...
+
+**What is a precise interpretation of a confidence interval?**
+
+Recall our *original 95% confidence interval* using the **percentile method**: $[1991, 2000]$. 
+
+**Interpretation**: We are **95% confident** that the average year on US pennies in 2019 is between 1991 and 2000, using the **percentile method**. 
+
+---
+
+# Practice
+
+Using the `diamonds` dataset, calculate a 99% confidence interval for the average price of diamonds. 
+
+--
+
+*Solution*
+
+```{r, comment = "", message = FALSE}
+diamonds_ci = diamonds %>%
+  specify(response = price) %>%
+  generate(reps = 1000) %>%
+  calculate(stat = "mean") %>%
+  get_ci(level = 0.99)
+diamonds_ci
+```
+
+
+---
+
+# Practice
+
+Now, take a random sample of 30 diamonds from the larger sample, and calculate a 99% confidence interval for the average price of diamonds. Use either the percentile or the standard error method. How does this compare to the previous confidence interval?
+
+--
+
+*Solution*
+
+```{r, comment = "", message = FALSE}
+diamonds_ci_30 = diamonds %>%
+  rep_sample_n(size = 30, reps = 1) %>%
+  specify(response = price) %>%
+  generate(reps = 1000) %>%
+  calculate(stat = "mean") %>%
+  get_ci(level = 0.99)
+diamonds_ci_30
+```
+
+---
+
+# Practice
+
+Because `price` is heavily right-skewed (construct a histogram to see!), calculate a 95% confidence interval for the *median* diamond price. 
+
+--
+
+*Solution*
+
+```{r, comment = "", message = FALSE}
+diamonds_ci_median = diamonds %>%
+  specify(response = price) %>%
+  generate(reps = 1000) %>%
+  calculate(stat = "median") %>%
+  get_ci()
+diamonds_ci_median
+```

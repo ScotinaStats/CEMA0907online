@@ -1,0 +1,123 @@
+---
+title: "CEMA 0907: Statistics in the Real World"
+subtitle: "Constructing Confidence Intervals"
+author: "Anthony Scotina"
+date: 
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    css: my-theme.css
+    nature:
+      highlightLines: true
+---
+
+```{r xaringan-themer, include = FALSE}
+library(xaringanthemer)
+mono_accent(base_color = "#43418A")
+```
+
+```{r, include = FALSE}
+library(tidyverse)
+library(moderndive)
+library(infer)
+```
+
+# Needed Packages
+
+```{r}
+library(tidyverse)
+library(moderndive)
+library(infer)
+```
+
+---
+
+# The Percentile Method
+
+The only thing you need to do here is to use the `get_ci()` function from the `infer` package:
+
+```{r}
+# From last time...
+bootstrap_distribution = pennies_sample %>% 
+  specify(response = year) %>% 
+  generate(reps = 1000) %>% 
+  calculate(stat = "mean")
+```
+
+```{r, comment = ""}
+percentile_ci = bootstrap_distribution %>% 
+  get_ci(level = 0.95, type = "percentile") 
+# 0.95 and "percentile" are default values
+percentile_ci
+```
+
+---
+
+# The Percentile Method
+
+The only thing you need to do here is to use the `get_ci()` function from the `infer` package:
+```{r, comment = ""}
+percentile_ci = bootstrap_distribution %>% 
+  get_ci(level = 0.95, type = "percentile") 
+# 0.95 and "percentile" are default values
+percentile_ci
+```
+
+The **percentile method** gives us the 2.5th and the 97.5th *percentiles* of the bootstrap distribution. 
+
+- Our range of plausible values for the mean year on US pennies in 2019 is between 1991 years and 2000 years, with **95% confidence**. 
+
+---
+
+# Visualizing the CI
+
+A cool thing you can do in R is to use the `visualize()` function to plot the *confidence interval* on top of the bootstrap distribution histogram. 
+- Run the following:
+
+```{r, eval = FALSE, warning = FALSE}
+bootstrap_distribution %>%
+  visualize(endpoints = percentile_ci, direction = "between")
+```
+
+---
+
+# The Standard Error Method
+
+Our **bootstrap distribution** is close to symmetric and bell-shaped, or **normally distributed**. 
+
+If this is the case, we can use a shortcut formula to calculate the lower and upper endpoints of the confidence interval: 
+$$\bar{x}\pm (multiplier)\cdot SE$$
+where $\bar{x}$ is the **sample statistic** (`x_bar`, obtained earlier), and $SE$ stands for **standard error**, or the *standard deviation of the bootstrap distribution*.
+- For a 95% confidence interval, the value of *multiplier* is **1.96**. 
+
+---
+
+# The Standard Error Method
+
+As with the **percentile method**, we use the `get_ci()` function here. But there are a few slight differences:
+```{r, comment = ""}
+x_bar = pennies_sample %>%
+  summarize(stat = mean(year))
+standard_error_ci = bootstrap_distribution %>% 
+  get_ci(type = "se", point_estimate = x_bar)
+standard_error_ci
+```
+
+- We have to specify that we want a CI using the **standard error method** (using `type = "se"`). 
+- We also have to provide the **point estimate**, which you should calculate beforehand using `summarize()`. 
+
+---
+
+# The Standard Error Method
+
+As with the **percentile method**, we use the `get_ci()` function here. But there are a few slight differences:
+```{r, comment = ""}
+standard_error_ci = bootstrap_distribution %>% 
+  get_ci(type = "se", point_estimate = x_bar)
+standard_error_ci
+```
+
+- Our range of plausible values for the mean year on US pennies in 2019 is between 1991 years and 2000 years, with **95% confidence**. 
+    - This is identical to the CI obtained using the **percentile method**!
+    
+- **Note**: The CIs *won't always* be identical! To use the Standard Error Method, you **must** check to see that the bootstrap distribution is *bell-shaped*. 

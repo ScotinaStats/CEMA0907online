@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>CEMA 0907: Statistics in the Real World</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Anthony Scotina" />
+    <link rel="stylesheet" href="my-theme.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# CEMA 0907: Statistics in the Real World
+## Multiple Regression (PART 1)
+### Anthony Scotina
+
+---
+
+
+
+
+
+
+# Needed Packages
+
+
+```r
+library(tidyverse)
+library(moderndive)
+```
+
+---
+
+# Multiple Regression
+
+**Does bedrooms per house give us the full story?**
+
+&lt;img src="06p01-Multiple_Regression_files/figure-html/unnamed-chunk-3-1.png" width="50%" /&gt;
+
+---
+
+# Multiple Regression
+
+**Does bedrooms per house give us the full story?**
+
+- *No.*
+
+&lt;img src="06p01-Multiple_Regression_files/figure-html/unnamed-chunk-4-1.png" width="50%" /&gt;
+
+---
+
+# Multiple Regression
+
+**So far**, we have looked at the following *linear regression models* using the `house_prices` data:
+
+- `\(\widehat{price} = 110316 + 127548*(bedrooms)\)`
+    - For every additional `bedroom`, there is an associated increase of, **on average**, &lt;span&gt;&amp;#36;&lt;/span&gt;127,548 on the price of the home. 
+
+--
+
+- `\(\widehat{price} = 531559 + 1130317*(waterfrontTRUE)\)`
+    - Homes with a *waterfront view* will cost, **on average**, &lt;span&gt;&amp;#36;&lt;/span&gt;1,130,317 more than *non-waterfront homes*. 
+
+--
+
+**Why not all at once?**
+
+- `\(\widehat{price} = b_{0}+b_{1}*(bedrooms)+b_{2}*(waterfrontTRUE)\)`
+
+---
+
+# Why multiple regression?
+
+It is rare to have a single explanatory (*x*) variable in a study. 
+
+- A *more complex model* can frequently help with **prediction**. 
+
+- The **multiple regression model** is of the form `$$\hat{y}=b_{0}+b_{1}x_{1}+b_{2}x_{2}+\cdots+b_{k}x_{k}$$`
+where there are `\(k\)` explanatory variables. 
+
+---
+
+# One Categorical AND One Explanatory Variable
+
+`$$\widehat{price} = b_{0}+b_{1}*(bedrooms)+b_{2}*(waterfrontTRUE)$$`
+
+**Question**: Does the *association* between `price` and `bedrooms` change when *simultaneously* considering homes with a *waterfront view*?
+
+--
+
+In this **multiple regression** model, we have:
+
+- A **numerical** response variable (*y*), the price of a home
+
+- *Two* **explanatory variables**:
+    - A *numerical explanatory variable*, `\(x_{1}\)`, the number of bedrooms per home
+    - A *categorical explanatory variable*, `\(x_{2}\)`, whether or not the home has a waterfront view
+    
+---
+
+# Data Visualization
+
+
+```r
+ggplot(data = house_prices, aes(x = bedrooms, y = price, color = waterfront)) + 
+  geom_point(alpha = 0.4) + 
+  geom_smooth(method = "lm", se = FALSE) + 
+  labs(x = "Bedrooms per home", y = "Price (in $)")
+```
+
+&lt;img src="06p01-Multiple_Regression_files/figure-html/unnamed-chunk-5-1.png" width="50%" /&gt;
+
+---
+
+# Data Visualization
+
+.pull-left[
+![](06p01-Multiple_Regression_files/figure-html/unnamed-chunk-6-1.png)&lt;!-- --&gt;
+]
+
+.pull-right[
+**Some observations**
+
+- Both slopes are **positive**. 
+
+- But, the slope for *waterfront view homes* is **more positive**. 
+
+In other words, the average house price per bedroom is *higher* for *waterfront view homes*. 
+]
+
+---
+
+# Interaction Model
+
+We will quantify the relationship between the response *y* and the *two* explanatory variables using a type of multiple regression model known as an **interaction model**. 
+
+
+```r
+lm_price_interaction = lm(price ~ bedrooms + waterfront + 
+                            bedrooms*waterfront, 
+                          data = house_prices)
+get_regression_table(lm_price_interaction)
+```
+
+```
+## # A tibble: 4 x 7
+##   term                    estimate std_error statistic p_value lower_ci upper_ci
+##   &lt;chr&gt;                      &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
+## 1 intercept                133202.     8554.     15.6    0      116435.  149969.
+## 2 bedrooms                 118160.     2446.     48.3    0      113365.  122955.
+## 3 waterfrontTRUE          -255355.    84617.     -3.02   0.003 -421211.  -89499.
+## 4 bedrooms:waterfrontTRUE  422354.    24375.     17.3    0      374577.  470132.
+```
+
+In this **interaction model**, the model formula was not only of the form `y ~ x1 + x2`, but it included an **interaction term**, `x1*x2`. 
+
+---
+
+# Interaction Model
+
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; term &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; estimate &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; std_error &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; lower_ci &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; upper_ci &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; intercept &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 133202.1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 8554.279 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 116435.1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 149969.14 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; bedrooms &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 118159.9 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2446.187 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 113365.2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 122954.64 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; waterfrontTRUE &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -255354.7 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 84617.192 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -421210.6 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -89498.76 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; bedrooms:waterfrontTRUE &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 422354.3 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 24375.247 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 374577.0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 470131.59 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+First, recall that *non-waterfront homes* (`waterfront = FALSE`) serves as the **reference** (or *baseline*) group. 
+- Therefore, the `intercept` term is the **intercept** *for only the non-waterfront homes*. 
+
+- Similarly, the `bedrooms` term is the **slope** *for only the non-waterfront homes*.
+
+What about the slope and intercept for *waterfront homes*?
+
+---
+
+# Linear Model Equation
+
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; term &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; estimate &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; std_error &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; lower_ci &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; upper_ci &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; intercept &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 133202.1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 8554.279 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 116435.1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 149969.14 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; bedrooms &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 118159.9 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2446.187 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 113365.2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 122954.64 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; waterfrontTRUE &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -255354.7 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 84617.192 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -421210.6 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -89498.76 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; bedrooms:waterfrontTRUE &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 422354.3 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 24375.247 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 374577.0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 470131.59 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+We can write the equation of the linear model *with interaction term* as 
+`\begin{align*}
+\widehat{price}&amp;=114143+123862(bedrooms)-236296(waterfrontTRUE)\\
+&amp;\ \ \ \ +416652(bedrooms:waterfrontTRUE)
+\end{align*}`
+
+---
+
+# Interaction Model
+
+`\begin{align*}
+\widehat{price}&amp;=114143+123862(bedrooms)-236296(waterfrontTRUE)\\
+&amp;\ \ \ \ +416652(bedrooms:waterfrontTRUE)
+\end{align*}`
+
+The value for `waterfrontTRUE` of `\(-236296\)` is *not* the intercept for waterfront homes.
+- Rather, it serves as the **offset** in the intercept for waterfront homes *relative to non-waterfront homes*. 
+
+- The *intercept* for *waterfront homes* is `intercept` + `waterfrontTRUE` = `\(114143-236296\)` = `\(-122153\)`.
+
+--
+
+**Uhhh wut?**
+
+- I thought waterfront homes were *more expensive*!!!
+
+---
+
+# The Interaction Term
+
+`\begin{align*}
+\widehat{price}&amp;=114143+123862(bedrooms)-236296(waterfrontTRUE)\\
+&amp;\ \ \ \ +416652(bedrooms:waterfrontTRUE)
+\end{align*}`
+
+The `bedrooms:waterfrontTRUE` is *not* the slope for age for waterfront homes. 
+- Rather, it serves as the **offset** in the slope for waterfront homes. 
+
+The *slope* for *waterfront* homes is `bedrooms` + `bedrooms:waterfrontTRUE` = `\(123862+416652\)` = `\(540514\)`. 
+
+---
+
+# Putting It All Together
+
+`\begin{align*}
+\widehat{price}&amp;=114143+123862(bedrooms)-236296(waterfrontTRUE)\\
+&amp;\ \ \ \ +416652(bedrooms:waterfrontTRUE)
+\end{align*}`
+
+Because there are *two levels* of the categorical explanatory variable (`TRUE` and `FALSE`), we can write the regression model as equations for *two separate regression lines*:
+
+- For `waterfront = TRUE`, `$$\widehat{price}=-122153+540514(bedrooms)$$`
+- For `waterfront = FALSE`, `$$\widehat{price}=114143+123862(bedrooms)$$`
+
+---
+
+# Putting It All Together
+
+.pull-left[
+![](06p01-Multiple_Regression_files/figure-html/unnamed-chunk-10-1.png)&lt;!-- --&gt;
+]
+
+.pull-right[
+- For `waterfront = TRUE`, `$$\widehat{price}=-122153+540514(bedrooms)$$`
+- For `waterfront = FALSE`, `$$\widehat{price}=114143+123862(bedrooms)$$`
+]
+
+---
+
+# Interpreting the Regression Lines
+
+For `waterfront = TRUE`, `$$\widehat{price}=-122153+540514(bedrooms)$$`
+
+- For **homes with a waterfront view**: For every additional `bedroom`, there is an associated increase of, **on average**, &lt;span&gt;&amp;#36;&lt;/span&gt;540,514 on the price of the home. 
+
+--
+
+For `waterfront = FALSE`, `$$\widehat{price}=114143+123862(bedrooms)$$`
+
+- For **homes without a waterfront view**: For every additional `bedroom`, there is an associated increase of, **on average**, &lt;span&gt;&amp;#36;&lt;/span&gt;123,862 on the price of the home. 
+
+--
+
+Thus, our model is suggesting that the number of bedrooms impacts the price of *waterfront homes* **more** than it does for *non-waterfront homes*. 
+
+---
+
+# Summary of Interaction Model
+
+`\begin{align*}
+\widehat{price}&amp;=114143+123862(bedrooms)-236296(waterfrontTRUE)\\
+&amp;\ \ \ \ +416652(bedrooms:waterfrontTRUE)
+\end{align*}`
+
+- `\(b_{0}=114143\)` is the `intercept` for *non-waterfront homes*.
+
+- `\(b_{1}=123862\)` is the slope for `bedrooms` for *non-waterfront homes*.
+
+- `\(b_{2}=-236296\)` is the **offset** in the intercept for *waterfront homes*. 
+
+- `\(b_{3}=416652\)` is the **offset** in the slope for *waterfront homes*. 
+
+---
+
+# Back to Interaction Effects
+
+Why do we call that additional term the **interaction effect**?
+
+- We say there is an interaction effect if the *associated effect* of one variable *depends* on the value of another variable. In other words, the two variables are “*interacting*” with each other.
+
+--
+
+For a given home in King County, WA, there might be an associated effect of `bedrooms` *by itself*. 
+
+There might also be an associated effect of `waterfront` homes *by itself*. 
+
+- **But** when `bedrooms` and `waterfront` homes are considered *together*, there might be *an additional effect* beyond those present when considering the variables separately.
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"countIncrementalSlides": false,
+"highlightLines": true
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

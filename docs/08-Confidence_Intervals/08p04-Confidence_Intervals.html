@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>CEMA 0907: Statistics in the Real World</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Anthony Scotina" />
+    <link rel="stylesheet" href="my-theme.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# CEMA 0907: Statistics in the Real World
+## Interpreting Confidence Intervals
+### Anthony Scotina
+
+---
+
+
+
+
+
+
+# Needed Packages
+
+
+```r
+library(tidyverse)
+library(moderndive)
+library(infer)
+```
+
+---
+
+class: center, middle
+
+# Interpreting the Confidence Interval
+
+---
+
+# Interpreting the Confidence Interval
+
+We have done a lot of calculations in this module, but *what does it all mean*?
+
+The purpose of confidence intervals is to provide a range of plausible values for an *unknown* parameter (in this case, the population mean `\(\mu\)`). 
+- Using the **percentile method**, one such interval is `\([1991, 2000]\)`. 
+
+--
+
+Let's modify `pennies_sample` to **simulate** a population of US pennies.
+
+```r
+pennies_pop = pennies_sample %&gt;%
+  sample_n(10000, replace = TRUE)
+
+mean(pennies_pop$year)
+```
+
+```
+[1] 1995.485
+```
+
+--
+
+Thus, `\(\mu=1995\)` (approx.) which *falls in the confidence interval*. 
+
+---
+
+# Using a new `pennies_sample`
+
+We can use the `infer` pipeline to re-do the entire set of exercises today, but using a *new* sample of pennies from the `pennies` data frame:
+
+
+
+```r
+percentile_ci2 = pennies_pop %&gt;%
+  rep_sample_n(size = 40, reps = 1) %&gt;%
+  specify(response = year) %&gt;% 
+  generate(reps = 1000) %&gt;% 
+  calculate(stat = "mean") %&gt;% 
+  get_ci()
+percentile_ci2
+```
+
+```
+## # A tibble: 1 x 2
+##   `2.5%` `97.5%`
+##    &lt;dbl&gt;   &lt;dbl&gt;
+## 1  1987.   1997.
+```
+
+This new confidence interval *also* does not contain `\(\mu\)` (1990). 
+
+---
+
+# Calculating Many CIs
+
+We can repeat this process 100 times (don't worry about the code), and generate 100 95% confidence intervals:
+
+.center[
+&lt;img src="08p04-Confidence_Intervals_files/figure-html/unnamed-chunk-6-1.png" width="60%" /&gt;
+]
+
+---
+
+# Calculating Many CIs
+
+Using 95% as our **confidence level**, *approximately* 95% of the CIs contained the population mean `\(\mu=1995\)`, while 8 did not. 
+
+**What does this mean?**
+- The procedure we have used to generate confidence intervals is "*95% reliable*" in that we can expect it to include the true population parameter *approximately* 95% of the time *if the process is repeated*.
+
+---
+
+# Back to our example...
+
+**What is a precise interpretation of a confidence interval?**
+
+Recall our *original 95% confidence interval* using the **percentile method**: `\([1991, 2000]\)`. 
+
+**Interpretation**: We are **95% confident** that the average year on US pennies in 2019 is between 1991 and 2000, using the **percentile method**. 
+
+---
+
+# Practice
+
+Using the `diamonds` dataset, calculate a 99% confidence interval for the average price of diamonds. 
+
+--
+
+*Solution*
+
+
+```r
+diamonds_ci = diamonds %&gt;%
+  specify(response = price) %&gt;%
+  generate(reps = 1000) %&gt;%
+  calculate(stat = "mean") %&gt;%
+  get_ci(level = 0.99)
+diamonds_ci
+```
+
+```
+# A tibble: 1 x 2
+  `0.5%` `99.5%`
+   &lt;dbl&gt;   &lt;dbl&gt;
+1  3892.   3975.
+```
+
+
+---
+
+# Practice
+
+Now, take a random sample of 30 diamonds from the larger sample, and calculate a 99% confidence interval for the average price of diamonds. Use either the percentile or the standard error method. How does this compare to the previous confidence interval?
+
+--
+
+*Solution*
+
+
+```r
+diamonds_ci_30 = diamonds %&gt;%
+  rep_sample_n(size = 30, reps = 1) %&gt;%
+  specify(response = price) %&gt;%
+  generate(reps = 1000) %&gt;%
+  calculate(stat = "mean") %&gt;%
+  get_ci(level = 0.99)
+diamonds_ci_30
+```
+
+```
+# A tibble: 1 x 2
+  `0.5%` `99.5%`
+   &lt;dbl&gt;   &lt;dbl&gt;
+1  1796.   4293.
+```
+
+---
+
+# Practice
+
+Because `price` is heavily right-skewed (construct a histogram to see!), calculate a 95% confidence interval for the *median* diamond price. 
+
+--
+
+*Solution*
+
+
+```r
+diamonds_ci_median = diamonds %&gt;%
+  specify(response = price) %&gt;%
+  generate(reps = 1000) %&gt;%
+  calculate(stat = "median") %&gt;%
+  get_ci()
+diamonds_ci_median
+```
+
+```
+# A tibble: 1 x 2
+  `2.5%` `97.5%`
+   &lt;dbl&gt;   &lt;dbl&gt;
+1   2376    2440
+```
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

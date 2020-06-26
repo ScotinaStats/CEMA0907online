@@ -1,0 +1,189 @@
+---
+title: "CEMA 0907: Statistics in the Real World"
+subtitle: "Basic Regression (PART 2)"
+author: "Anthony Scotina"
+date: 
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    css: my-theme.css
+    nature:
+      countIncrementalSlides: false
+      highlightLines: true
+---
+
+```{r xaringan-themer, include = FALSE}
+library(xaringanthemer)
+mono_accent(base_color = "#4682B4") #3E8A83?
+```
+
+```{r, include = FALSE}
+library(tidyverse)
+library(moderndive)
+library(gapminder)
+```
+
+# Needed Packages
+
+```{r}
+library(tidyverse)
+library(moderndive)
+library(gapminder)
+```
+
+---
+
+class: center, middle
+
+# One Categorical Explanatory Variable
+
+---
+
+# Motivating Example
+
+Do you think that **waterfront homes** are typically *more expensive* than **non-waterfront homes**?
+
+--
+
+.pull-left[
+**Waterfront Home**
+```{r, echo = FALSE}
+knitr::include_graphics("waterfront_seattle.jpg")
+```
+]
+
+.pull-right[
+**Non-waterfront Home**
+```{r, echo = FALSE}
+knitr::include_graphics("nonwaterfront.jpg")
+```
+]
+
+---
+
+# Practice
+
+Using `house_prices`, perform *all steps from the regression analysis* of **bedrooms** (*x*) and **price** (*y*), but use `waterfront` as the *x* variable *instead*. 
+
+- What do you notice about how `lm()` reports information for a **categorical explanatory variable**?
+
+---
+
+# Summary Statistics
+
+```{r}
+house_prices %>%
+  select(price, waterfront) %>%
+  group_by(waterfront) %>% #<<
+  summarize(mean_price = mean(price), sd_price = sd(price))
+```
+
+---
+
+# Data Visualization
+
+```{r, out.width = "45%"}
+ggplot(data = house_prices, aes(x = waterfront, y = price)) + 
+  geom_jitter() + 
+  geom_smooth(method = "lm", se = FALSE) + 
+  labs(x = "Waterfront home?", y = "Price (in $)") 
+```
+
+---
+
+# A (Better) Data Visualization
+
+Because the *x* variable is **categorical**, a *boxplot* might be a better visualization. 
+```{r, out.width = "45%"}
+ggplot(data = house_prices, aes(x = waterfront, y = price)) + 
+  geom_boxplot() + #<<
+  labs(x = "Waterfront home?", y = "Price (in $)") 
+```
+
+---
+
+# Linear Regression Model
+
+```{r}
+lm_waterfront = lm(price ~ waterfront, data = house_prices)
+get_regression_table(lm_waterfront)
+```
+
+$$\widehat{price}=531564+1130312\cdot waterfrontTRUE$$
+
+--
+
+Okay... what does `waterfrontTRUE` mean?!
+
+---
+
+# Dummy Variables
+
+$$\widehat{price}=531564+1130312\cdot waterfrontTRUE$$
+
+When using a **categorical explanatory variable** in a regression model, the *estimated coefficient* corresponds to the **difference in means** between:
+
+- one level of the categorical explanatory variable, and
+- the *reference level* of the categorical explanatory variable (usualy the level that comes first *alphabetically*)
+
+--
+
+Because the `waterfront` variable takes *two levels* (`TRUE` and `FALSE`), the *reference level* is `FALSE`. 
+
+- $b_{1}=1130312$: Homes with a *waterfront view* are *predicted* to cost, **on average**, <span>&#36;</span>1,130,312 more than *non-waterfront homes*. 
+
+- $b_{0}=531564$: Homes *without a waterfront view* (i.e., `waterfrontTRUE = 0`) are *predicted* to cost, **on average**, <span>&#36;</span>531,564. 
+---
+
+# Practice
+
+Using the `gapminder2007` data (filtering code below), conduct a *linear regression analysis* of `lifeExp` (*y*) against `continent` (*x*). 
+
+- What does this tell you about the relationship between life expectancy and continent?
+
+- What do the different regression coefficients mean in this context?
+
+```{r}
+gapminder2007 = gapminder %>%
+  filter(year == 2007 & continent != "Oceania") %>% 
+  select(country, continent, lifeExp, gdpPercap)
+gapminder2007$continent = factor(gapminder2007$continent)
+```
+
+
+---
+
+# Back to Summary Statistics
+
+.pull-left[
+```{r, echo = FALSE}
+knitr::kable(data.frame(Waterfront = c("TRUE", "FALSE"), 
+                        Mean = c("$0.53 mil", "$1.66 mil")), 
+             format = "html", align = "c")
+```
+]
+
+.pull-right[
+```{r, echo = FALSE}
+ggplot(house_prices, aes(x = waterfront, y = price, fill = waterfront)) + 
+  geom_bar(stat = "summary", fun.y = "mean") + 
+  labs(x = "Waterfront?", y = "Average Price (in $)") + 
+  theme_bw() + 
+  theme(legend.position = "none")
+```
+]
+
+---
+
+# Back to Summary Statistics
+
+```{r}
+lm_waterfront = lm(price ~ waterfront, data = house_prices)
+get_regression_table(lm_waterfront)
+```
+
+```{r}
+mean(price ~ waterfront, data = house_prices)
+```
+
+**We knew the regression coefficients the whole time!!!**

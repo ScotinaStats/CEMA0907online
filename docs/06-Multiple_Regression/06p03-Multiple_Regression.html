@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>CEMA 0907: Statistics in the Real World</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Anthony Scotina" />
+    <link rel="stylesheet" href="my-theme.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# CEMA 0907: Statistics in the Real World
+## Model Selection
+### Anthony Scotina
+
+---
+
+
+
+
+
+
+# Needed Packages
+
+
+```r
+library(tidyverse)
+library(moderndive)
+```
+
+---
+
+class: center, middle
+
+# Model Selection
+
+---
+
+# Model Selection
+
+**When do we use an interaction model or a parallel slopes model?!**
+
+- If *lines of best fit* based on different levels of explanatory variables aren't *parellel*, why would we **force** them to be parallel?
+
+&lt;img src="06p03-Multiple_Regression_files/figure-html/unnamed-chunk-3-1.png" width="40%" /&gt;&lt;img src="06p03-Multiple_Regression_files/figure-html/unnamed-chunk-3-2.png" width="40%" /&gt;
+
+---
+
+# Model Selection
+
+Sometimes, **simpler** solutions are more likely to be *correct* than **complex** solutions. 
+
+Using `price` as the response:
+
+- The **interaction model** was
+`\begin{align*}
+\widehat{price}&amp;=114143+123862(bedrooms)-236296(waterfrontTRUE)\\
+&amp;\ \ \ \ +416652(bedrooms:waterfrontTRUE)
+\end{align*}`
+
+- The **parallel slopes model** was `$$\widehat{price}=99306+128265(bedrooms)+1139217(waterfrontTRUE)$$`
+
+--
+
+The interaction model is more *complex* due to the extra ( `\(b_{3}=416652\)`) term. 
+
+- Is the *extra complexity* warranted?
+
+- (Arguably, yes. But let's look at an example where it is less obvious...)
+
+---
+
+# `MA_schools`
+
+The `MA_schools` dataset in the `moderndive` package contains data on MA public high schools in 2017. 
+
+
+```r
+View(MA_schools)
+?MA_schools
+```
+
+We will model `average_sat_math` (*y*) as a function of:
+
+- `perc_disadvan` ( `\(x_{1}\)`): percent of study body considered "economically disadvantaged"
+
+- `size` ( `\(x_{2}\)`): size of enrollment (`small`, `medium`, `large`)
+
+---
+
+# Practice
+
+Using `ggplot()`, construct the scatterplot using the **interaction model**. 
+
+Using `gg_parallel_slopes()`, construct the scatterplot using the **parallel slopes model**. 
+
+---
+
+# Comparing the Models
+
+At least visually, the models don't appear very different!
+- Now let's compare the **regression tables**. 
+
+--
+
+
+```r
+lm_mass_int = lm(average_sat_math ~ perc_disadvan + size + 
+                   perc_disadvan*size, 
+                 data = MA_schools)
+get_regression_table(lm_mass_int)
+```
+
+```
+## # A tibble: 6 x 7
+##   term                    estimate std_error statistic p_value lower_ci upper_ci
+##   &lt;chr&gt;                      &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
+## 1 intercept                594.       13.3      44.7     0      568.     620.   
+## 2 perc_disadvan             -2.93      0.294    -9.96    0       -3.51    -2.35 
+## 3 sizemedium               -17.8      15.8      -1.12    0.263  -48.9     13.4  
+## 4 sizelarge                -13.3      13.8      -0.962   0.337  -40.5     13.9  
+## 5 perc_disadvan:sizemedi…    0.146     0.371     0.393   0.694   -0.585    0.877
+## 6 perc_disadvan:sizelarge    0.189     0.323     0.586   0.559   -0.446    0.824
+```
+
+---
+
+# Interaction Model
+
+
+```
+## # A tibble: 6 x 7
+##   term                    estimate std_error statistic p_value lower_ci upper_ci
+##   &lt;chr&gt;                      &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
+## 1 intercept                594.       13.3      44.7     0      568.     620.   
+## 2 perc_disadvan             -2.93      0.294    -9.96    0       -3.51    -2.35 
+## 3 sizemedium               -17.8      15.8      -1.12    0.263  -48.9     13.4  
+## 4 sizelarge                -13.3      13.8      -0.962   0.337  -40.5     13.9  
+## 5 perc_disadvan:sizemedi…    0.146     0.371     0.393   0.694   -0.585    0.877
+## 6 perc_disadvan:sizelarge    0.189     0.323     0.586   0.559   -0.446    0.824
+```
+
+The interaction model is 
+`\begin{align*}
+  \widehat{avg.sat.math}&amp;=594-2.93(perc.disadvan)-17.8(size:medium)\\
+  &amp; \ \ \ \ -13.3(size:large)+0.146(perc.disadvan*size:medium)\\
+  &amp; \ \ \ \ +0.189(perc.disadvan*size:large)
+\end{align*}`
+
+---
+
+# Paraellel Slopes Model
+
+
+```r
+lm_mass_par = lm(average_sat_math ~ perc_disadvan + size, data = MA_schools)
+get_regression_table(lm_mass_par)
+```
+
+```
+## # A tibble: 4 x 7
+##   term          estimate std_error statistic p_value lower_ci upper_ci
+##   &lt;chr&gt;            &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
+## 1 intercept       588.       7.61     77.3     0       573.     603.  
+## 2 perc_disadvan    -2.78     0.106   -26.1     0        -2.99    -2.57
+## 3 sizemedium      -11.9      7.54     -1.58    0.115   -26.7      2.91
+## 4 sizelarge        -6.36     6.92     -0.919   0.359   -20.0      7.26
+```
+
+The parallel slopes model is 
+`\begin{align*}
+  \widehat{avg.sat.math}&amp;=594-2.78(perc.disadvan)\\
+  &amp;\ \ \ \ -11.9(size:medium)-6.36(size:large)
+\end{align*}`
+
+---
+
+# Comparing the Models
+
+Among other things, the **offsets** for the different slopes in the *interaction model* are very small relative to baseline. 
+
+- `\(b_{3}=0.146\)` means that the slope for *medium* schools is only 0.146 points higher than baseline (-2.93). 
+
+- `\(b_{4}=0.189\)` means that the slope for *large* schools is only 0.189 points higher than baseline (-2.93). 
+
+--
+
+The *p*-values for those estimated coefficients are also small. 
+- This is *beyond the scope of this class*, but the large *p*-values in the regression output mean something! 
+
+--
+
+We just did a *very simple* form of **model selection**!
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"countIncrementalSlides": false,
+"highlightLines": true
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

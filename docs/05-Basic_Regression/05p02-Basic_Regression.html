@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>CEMA 0907: Statistics in the Real World</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Anthony Scotina" />
+    <link rel="stylesheet" href="my-theme.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# CEMA 0907: Statistics in the Real World
+## Basic Regression (PART 2)
+### Anthony Scotina
+
+---
+
+
+
+
+
+
+# Needed Packages
+
+
+```r
+library(tidyverse)
+library(moderndive)
+library(gapminder)
+```
+
+---
+
+class: center, middle
+
+# One Categorical Explanatory Variable
+
+---
+
+# Motivating Example
+
+Do you think that **waterfront homes** are typically *more expensive* than **non-waterfront homes**?
+
+--
+
+.pull-left[
+**Waterfront Home**
+&lt;img src="waterfront_seattle.jpg" width="853" /&gt;
+]
+
+.pull-right[
+**Non-waterfront Home**
+&lt;img src="nonwaterfront.jpg" width="733" /&gt;
+]
+
+---
+
+# Practice
+
+Using `house_prices`, perform *all steps from the regression analysis* of **bedrooms** (*x*) and **price** (*y*), but use `waterfront` as the *x* variable *instead*. 
+
+- What do you notice about how `lm()` reports information for a **categorical explanatory variable**?
+
+---
+
+# Summary Statistics
+
+
+```r
+house_prices %&gt;%
+  select(price, waterfront) %&gt;%
+* group_by(waterfront) %&gt;%
+  summarize(mean_price = mean(price), sd_price = sd(price))
+```
+
+```
+## # A tibble: 2 x 3
+##   waterfront mean_price sd_price
+##   &lt;lgl&gt;           &lt;dbl&gt;    &lt;dbl&gt;
+## 1 FALSE         531564.  341600.
+## 2 TRUE         1661876. 1120372.
+```
+
+---
+
+# Data Visualization
+
+
+```r
+ggplot(data = house_prices, aes(x = waterfront, y = price)) + 
+  geom_jitter() + 
+  geom_smooth(method = "lm", se = FALSE) + 
+  labs(x = "Waterfront home?", y = "Price (in $)") 
+```
+
+&lt;img src="05p02-Basic_Regression_files/figure-html/unnamed-chunk-6-1.png" width="45%" /&gt;
+
+---
+
+# A (Better) Data Visualization
+
+Because the *x* variable is **categorical**, a *boxplot* might be a better visualization. 
+
+```r
+ggplot(data = house_prices, aes(x = waterfront, y = price)) + 
+* geom_boxplot() +
+  labs(x = "Waterfront home?", y = "Price (in $)") 
+```
+
+&lt;img src="05p02-Basic_Regression_files/figure-html/unnamed-chunk-7-1.png" width="45%" /&gt;
+
+---
+
+# Linear Regression Model
+
+
+```r
+lm_waterfront = lm(price ~ waterfront, data = house_prices)
+get_regression_table(lm_waterfront)
+```
+
+```
+## # A tibble: 2 x 7
+##   term           estimate std_error statistic p_value lower_ci upper_ci
+##   &lt;chr&gt;             &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
+## 1 intercept       531564.     2416.     220         0  526828.  536300.
+## 2 waterfrontTRUE 1130312.    27822.      40.6       0 1075778. 1184847.
+```
+
+`$$\widehat{price}=531564+1130312\cdot waterfrontTRUE$$`
+
+--
+
+Okay... what does `waterfrontTRUE` mean?!
+
+---
+
+# Dummy Variables
+
+`$$\widehat{price}=531564+1130312\cdot waterfrontTRUE$$`
+
+When using a **categorical explanatory variable** in a regression model, the *estimated coefficient* corresponds to the **difference in means** between:
+
+- one level of the categorical explanatory variable, and
+- the *reference level* of the categorical explanatory variable (usualy the level that comes first *alphabetically*)
+
+--
+
+Because the `waterfront` variable takes *two levels* (`TRUE` and `FALSE`), the *reference level* is `FALSE`. 
+
+- `\(b_{1}=1130312\)`: Homes with a *waterfront view* are *predicted* to cost, **on average**, &lt;span&gt;&amp;#36;&lt;/span&gt;1,130,312 more than *non-waterfront homes*. 
+
+- `\(b_{0}=531564\)`: Homes *without a waterfront view* (i.e., `waterfrontTRUE = 0`) are *predicted* to cost, **on average**, &lt;span&gt;&amp;#36;&lt;/span&gt;531,564. 
+---
+
+# Practice
+
+Using the `gapminder2007` data (filtering code below), conduct a *linear regression analysis* of `lifeExp` (*y*) against `continent` (*x*). 
+
+- What does this tell you about the relationship between life expectancy and continent?
+
+- What do the different regression coefficients mean in this context?
+
+
+```r
+gapminder2007 = gapminder %&gt;%
+  filter(year == 2007 &amp; continent != "Oceania") %&gt;% 
+  select(country, continent, lifeExp, gdpPercap)
+gapminder2007$continent = factor(gapminder2007$continent)
+```
+
+
+---
+
+# Back to Summary Statistics
+
+.pull-left[
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:center;"&gt; Waterfront &lt;/th&gt;
+   &lt;th style="text-align:center;"&gt; Mean &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:center;"&gt; TRUE &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; $0.53 mil &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:center;"&gt; FALSE &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; $1.66 mil &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+]
+
+.pull-right[
+![](05p02-Basic_Regression_files/figure-html/unnamed-chunk-11-1.png)&lt;!-- --&gt;
+]
+
+---
+
+# Back to Summary Statistics
+
+
+```r
+lm_waterfront = lm(price ~ waterfront, data = house_prices)
+get_regression_table(lm_waterfront)
+```
+
+```
+## # A tibble: 2 x 7
+##   term           estimate std_error statistic p_value lower_ci upper_ci
+##   &lt;chr&gt;             &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
+## 1 intercept       531564.     2416.     220         0  526828.  536300.
+## 2 waterfrontTRUE 1130312.    27822.      40.6       0 1075778. 1184847.
+```
+
+
+```r
+mean(price ~ waterfront, data = house_prices)
+```
+
+```
+## Warning in mean.default(price ~ waterfront, data = house_prices): argument is
+## not numeric or logical: returning NA
+```
+
+```
+## [1] NA
+```
+
+**We knew the regression coefficients the whole time!!!**
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"countIncrementalSlides": false,
+"highlightLines": true
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
