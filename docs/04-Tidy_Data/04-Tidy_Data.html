@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>CEMA 0907: Statistics in the Real World</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Anthony Scotina" />
+    <link rel="stylesheet" href="my-theme.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# CEMA 0907: Statistics in the Real World
+## Tidy Data
+### Anthony Scotina
+
+---
+
+
+
+
+
+
+# Needed Packages 
+
+
+```r
+library(tidyverse) # includes tidyr
+library(fivethirtyeight)
+```
+
+---
+
+# `bush_approval` data
+
+Download the `bush_approval` data from Canvas, and import it into R. 
+
+
+
+The `bush_approval` data frame consists of approval ratings (out of 100%) of former US President George W. Bush. 
+
+- `date`: date of poll
+- `Approve`: overall percent who approve of President Bush
+- `Disapprove`: overall percent who disapprove of President Bush
+- `Republican`: percent approval among Republican voters
+- `Independent`: percent approval among Independent voters
+- `Democrat`: percent approval among Democrat voters
+- `Pres.Party`: President Bush's political party
+
+--
+
+Simplify the data a bit:
+
+```r
+bush_approval = bush_approval %&gt;%
+  select(date, Republican, Independent, Democrat)
+```
+
+---
+
+# Wide Data
+
+
+```r
+head(bush_approval, 5)
+```
+
+```
+## # A tibble: 5 x 4
+##   date       Republican Independent Democrat
+##   &lt;date&gt;          &lt;dbl&gt;       &lt;dbl&gt;    &lt;dbl&gt;
+## 1 2009-01-13         75           6       28
+## 2 2008-12-16         67           7       25
+## 3 2008-12-09         72           9       26
+## 4 2008-11-18         66           6       28
+## 5 2008-11-11         63           5       21
+```
+
+The `bush_approval` data are currently in **wide format**. 
+
+- Each party's approval of Bush is located in a separate column. 
+
+--
+
+If *visual inspection* is the primary analytical technique, this format can be convenient. 
+
+- However, it can be more difficult to implement anything other than *visual inspection*. 
+
+---
+
+# Tidy Data
+
+As is, the `bush_approval` data are not **tidy**!
+
+--
+
+&lt;img src="tidy_data.png" width="2000" /&gt;
+
+From [Wickham (2014)](https://vita.had.co.nz/papers/tidy-data.pdf)
+  
+1. Each variable forms a column.
+
+2. Each observation forms a row.
+
+3. Each type of observational unit forms a table.
+
+---
+
+# Tidy Data
+
+Why is `bush_approval` *not* tidy?
+
+
+```r
+head(bush_approval, 5)
+```
+
+```
+# A tibble: 5 x 4
+  date       Republican Independent Democrat
+  &lt;date&gt;          &lt;dbl&gt;       &lt;dbl&gt;    &lt;dbl&gt;
+1 2009-01-13         75           6       28
+2 2008-12-16         67           7       25
+3 2008-12-09         72           9       26
+4 2008-11-18         66           6       28
+5 2008-11-11         63           5       21
+```
+
+What are the **three unique pieces of information** in this data frame?
+
+--
+
+1. Date
+2. Approval Rating
+3. Political Party
+
+--
+
+But... there are more than three columns!
+
+---
+
+# Tidy Data
+
+We want to end up with this:
+
+
+
+```r
+bush_tidy
+```
+
+```
+# A tibble: 849 x 3
+   date       Party       Approval
+   &lt;date&gt;     &lt;chr&gt;          &lt;dbl&gt;
+ 1 2009-01-13 Republican        75
+ 2 2009-01-13 Independent        6
+ 3 2009-01-13 Democrat          28
+ 4 2008-12-16 Republican        67
+ 5 2008-12-16 Independent        7
+ 6 2008-12-16 Democrat          25
+ 7 2008-12-09 Republican        72
+ 8 2008-12-09 Independent        9
+ 9 2008-12-09 Democrat          26
+10 2008-11-18 Republican        66
+# … with 839 more rows
+```
+
+---
+
+# How do we convert to "tidy" data?
+
+.center[
+&lt;img src="tidyr_hex.png" width="40%" /&gt;
+]
+
+---
+
+# `pivot_longer()`
+
+We convert a data frame to "tidy" (long format) by using the `pivot_longer()` function from the `tidyr` package.
+
+- The `tidyr` package loads with the `tidyverse`. 
+
+
+```r
+head(bush_approval, 5)
+```
+
+```
+## # A tibble: 5 x 4
+##   date       Republican Independent Democrat
+##   &lt;date&gt;          &lt;dbl&gt;       &lt;dbl&gt;    &lt;dbl&gt;
+## 1 2009-01-13         75           6       28
+## 2 2008-12-16         67           7       25
+## 3 2008-12-09         72           9       26
+## 4 2008-11-18         66           6       28
+## 5 2008-11-11         63           5       21
+```
+
+
+```r
+bush_tidy = bush_approval %&gt;%
+  pivot_longer(names_to = "Party", 
+               values_to = "Approval", 
+               cols = -date)
+```
+
+---
+
+# `pivot_longer()`
+
+
+```r
+bush_tidy = bush_approval %&gt;%
+  pivot_longer(names_to = "Party", 
+               values_to = "Approval", 
+               cols = -date)
+bush_tidy
+```
+
+```
+# A tibble: 849 x 3
+   date       Party       Approval
+   &lt;date&gt;     &lt;chr&gt;          &lt;dbl&gt;
+ 1 2009-01-13 Republican        75
+ 2 2009-01-13 Independent        6
+ 3 2009-01-13 Democrat          28
+ 4 2008-12-16 Republican        67
+ 5 2008-12-16 Independent        7
+ 6 2008-12-16 Democrat          25
+ 7 2008-12-09 Republican        72
+ 8 2008-12-09 Independent        9
+ 9 2008-12-09 Democrat          26
+10 2008-11-18 Republican        66
+# … with 839 more rows
+```
+
+---
+
+# `pivot_longer()`
+
+The `pivot_longer()` function takes the following *arguments*:
+
+- `names_to` is the name of the column/variable in the new "tidy" frame that contains the column names of the original data frame that you want to tidy.
+    - When we set `names_to = Party`, the `Party` column in `bush_tidy` contains the original Party names from `bush_approval`. 
+
+--
+
+- `values_to` is the name of the column/variable in the "tidy" frame that contains the rows and columns of values in the original data frame you want to tidy. 
+    - When we set `values_to = Approval`, the `Approval` column in `bush_tidy` contains all of the approval ratings from `bush_approval`. 
+
+--
+
+- The third argument, `cols`, is the column(s) you either want to or don’t want to tidy. 
+    - The `date` variable was already tidy, so we didn't need to further modify it. 
+    
+---
+
+# Benefits of Tidy Data
+
+While we sacrificed our ability to see the data *all at once*, it is much more straightforward to use *data visualization* and *data wrangling* techniques with **tidy data**. 
+
+
+```r
+ggplot(data = bush_tidy, aes(x = date, y = Approval, color = Party)) + 
+  geom_line(size = 1.5) + 
+  labs(x = "", title = "Approval Rate for George W. Bush", subtitle = "by party")
+```
+
+&lt;img src="04-Tidy_Data_files/figure-html/unnamed-chunk-14-1.png" width="40%" /&gt;
+
+---
+
+# Going from tidy to wide format
+
+If you have a *tidy* dataset but want to transform it to *wide format*, use the `pivot_wider()` function:
+
+
+```r
+bush_wide = bush_tidy %&gt;%
+  pivot_wider(names_from = "Party", 
+              values_from = "Approval")
+head(bush_wide, 5)
+```
+
+```
+## # A tibble: 5 x 4
+##   date       Republican Independent Democrat
+##   &lt;date&gt;          &lt;dbl&gt;       &lt;dbl&gt;    &lt;dbl&gt;
+## 1 2009-01-13         75           6       28
+## 2 2008-12-16         67           7       25
+## 3 2008-12-09         72           9       26
+## 4 2008-11-18         66           6       28
+## 5 2008-11-11         63           5       21
+```
+
+The `pivot_wider()` syntax is nearly *identical* to `pivot_longer()`, except with the `names_from` and `values_from` arguments. 
+
+---
+
+# Example
+
+Let's look at the `drinks` data frame from the `fivethirtyeight` package. 
+
+
+```r
+library(fivethirtyeight)
+drinks
+```
+
+```
+# A tibble: 193 x 5
+   country      beer_servings spirit_servings wine_servings total_litres_of_pur…
+   &lt;chr&gt;                &lt;int&gt;           &lt;int&gt;         &lt;int&gt;                &lt;dbl&gt;
+ 1 Afghanistan              0               0             0                  0  
+ 2 Albania                 89             132            54                  4.9
+ 3 Algeria                 25               0            14                  0.7
+ 4 Andorra                245             138           312                 12.4
+ 5 Angola                 217              57            45                  5.9
+ 6 Antigua &amp; B…           102             128            45                  4.9
+ 7 Argentina              193              25           221                  8.3
+ 8 Armenia                 21             179            11                  3.8
+ 9 Australia              261              72           212                 10.4
+10 Austria                279              75           191                  9.7
+# … with 183 more rows
+```
+
+---
+
+# Example
+
+&lt;img src="fivethirtyeight_drinks.png" width="50%" /&gt;
+
+---
+
+# Example
+
+Run the following code to simplify the data frame a bit:
+
+
+```r
+drinks_smaller = drinks %&gt;%
+  filter(country %in% c("USA", "France", "China", "Italy", "Ireland")) %&gt;%
+  select(-total_litres_of_pure_alcohol)
+View(drinks_smaller)
+```
+
+
+```
+# A tibble: 5 x 4
+  country beer_servings spirit_servings wine_servings
+  &lt;chr&gt;           &lt;int&gt;           &lt;int&gt;         &lt;int&gt;
+1 China              79             192             8
+2 France            127             151           370
+3 Ireland           313             118           165
+4 Italy              85              42           237
+5 USA               249             158            84
+```
+
+---
+
+# Practice
+
+Convert `drinks_smaller` to a **tidy** data frame. 
+
+**Starting Point**
+
+```r
+drinks_smaller
+```
+
+```
+# A tibble: 5 x 4
+  country beer_servings spirit_servings wine_servings
+  &lt;chr&gt;           &lt;int&gt;           &lt;int&gt;         &lt;int&gt;
+1 China              79             192             8
+2 France            127             151           370
+3 Ireland           313             118           165
+4 Italy              85              42           237
+5 USA               249             158            84
+```
+
+---
+
+# Practice
+
+Convert `drinks_smaller` to a **tidy** data frame. 
+
+**Ending Point**
+
+
+```r
+drinks_tidy
+```
+
+```
+# A tibble: 15 x 3
+   country type            servings
+   &lt;chr&gt;   &lt;chr&gt;              &lt;int&gt;
+ 1 China   beer_servings         79
+ 2 France  beer_servings        127
+ 3 Ireland beer_servings        313
+ 4 Italy   beer_servings         85
+ 5 USA     beer_servings        249
+ 6 China   spirit_servings      192
+ 7 France  spirit_servings      151
+ 8 Ireland spirit_servings      118
+ 9 Italy   spirit_servings       42
+10 USA     spirit_servings      158
+11 China   wine_servings          8
+12 France  wine_servings        370
+13 Ireland wine_servings        165
+14 Italy   wine_servings        237
+15 USA     wine_servings         84
+```
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"countIncrementalSlides": false,
+"highlightLines": true
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

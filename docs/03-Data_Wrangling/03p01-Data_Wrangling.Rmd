@@ -1,0 +1,420 @@
+---
+title: "CEMA 0907: Statistics in the Real World"
+subtitle: "The 'pipe' Operator, and filter()"
+author: "Anthony Scotina"
+date: 
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    css: my-theme.css
+    nature:
+      countIncrementalSlides: false
+      highlightLines: true
+---
+
+<!--
+pagedown::chrome_print("~/Dropbox/Teaching/02-Brown Courses/CEMA0928-Statistics in the Real World [ONLINE]/Content/03-Data_Wrangling/03p02-Data_Wrangling.html")
+-->
+
+```{r xaringan-themer, include = FALSE}
+library(xaringanthemer)
+mono_accent(base_color = "#4682B4") #3E8A83?
+```
+
+```{r, include = FALSE}
+library(plyr)
+library(tidyverse)
+library(moderndive)
+library(infer)
+library(nycflights13)
+library(gapminder)
+```
+
+
+# What have we done so far?
+
+**Data Exploration**
+
+```{r, comment = ""}
+library(nycflights13)
+flights
+```
+
+---
+
+# What have we done so far?
+
+**Data Visualization**
+
+```{r, eval = FALSE, echo = TRUE}
+flights %>%
+  filter(carrier == "F9") %>%
+  ggplot(mapping = aes(x = dep_delay, y = arr_delay)) + 
+  geom_point(alpha = 0.2) + 
+  labs(x = "Departure Delay (in minutes)", 
+       y = "Arrival Delay (in minutes)") + 
+  theme_minimal()
+```
+
+---
+
+# What have we done so far?
+
+**Data Visualization**
+
+```{r, eval = TRUE, echo = FALSE, out.width = "60%", warning = FALSE}
+flights %>%
+  filter(carrier == "F9") %>%
+  ggplot(mapping = aes(x = dep_delay, y = arr_delay)) + 
+  geom_point(alpha = 0.2) + 
+  labs(x = "Departure Delay (in minutes)", y = "Arrival Delay (in minutes)") + 
+  theme_minimal()
+```
+
+---
+
+# What will we do now?
+
+**Data Wrangling**
+
+```{r, eval = FALSE, echo = TRUE}
+flights %>% #<<
+  filter(carrier == "F9") %>% #<<
+  ggplot(mapping = aes(x = dep_delay, y = arr_delay)) + 
+  geom_point(alpha = 0.2) + 
+  labs(x = "Departure Delay (in minutes)", 
+       y = "Arrival Delay (in minutes)") + 
+  theme_minimal()
+```
+
+---
+
+# Data Wrangling in R? 
+
+**dplyr**
+
+.center[
+```{r, echo = FALSE, out.width = "40%"}
+knitr::include_graphics("dplyr_hex.png")
+```
+]
+
+---
+
+# Needed Packages 
+
+```{r}
+library(tidyverse) # includes ggplot2 and dplyr
+library(gapminder)
+library(nycflights13)
+```
+
+---
+
+class: middle, center
+
+# The Pipe Operator `%>%`
+
+---
+
+# The Pipe Operator `%>%`
+
+Say you want to perform a set of operations on the `flights` data frame:
+
+1. Take `flights`, then...
+
+--
+
+2. `filter` for *only* Jet Blue flights (carrier code "B6"), then...
+
+--
+
+3. `group_by` departure airport (`origin`), then...
+
+--
+
+4. `summarize` the *average flight distance* (`distance`) by departure airport. 
+
+---
+
+# The Pipe Operator `%>%`
+
+Say you want to perform a set of operations on the `flights` data frame:
+
+**Use the pipe operator!** (`%>%`)
+
+```{r, echo = TRUE, eval = TRUE, comment = ""}
+flights %>%
+  filter(carrier == "B6") %>%
+  group_by(origin) %>%
+  summarize(mean(distance))
+```
+
+---
+
+# The Pipe Operator `%>%`
+
+You would read this sequence as:
+
+1. Take `flights`, then...
+2. Use this output as the input to the next function, `filter`, then...
+3. Use this output as the input to the next function, `group_by`, then...
+4. Use this output as the input to the next function, `summarize`.
+
+--
+
+**The starting value will always be the data frame!**
+
+- The sequence of functions that follow will consist of some combination of **verb-named functions** that we will discuss throughout class today. 
+- The result will the transformed/modified data frame that you want. For example, 
+    - A data frame consisting of only the subset of rows in flights corresponding to Jet Blue flights.
+    - A data frame consisting of average flight distance separated by origin. 
+    
+---
+
+# The Pipe Operator `%>%`
+
+In `dplyr`, the pipe operator (`%>%`) plays a very similar role to the `+` operator when adding layers in `ggplot2`.
+
+You can even save "piped" operations as a new data frame. In fact, we have already done it!
+
+**Example** (from yesterday): Weather at the JFK airport in New York, between November 1 and November 18:
+
+```{r}
+jfk.nov = weather %>%
+  filter(origin == "JFK" & month == 11 & day <= 18)
+```
+
+---
+
+# The Pipe Operator `%>%`
+
+**Keyboard shortcut!!!**
+
+[control]+[shift]+[m]
+
+---
+
+class: middle, center
+
+# Verb-Named Functions
+
+---
+
+# Verb-Named Functions
+
+We will cover the following functions from the `dplyr` package. These will take a data frame and...
+
+1. `filter()` its existing rows to only pick out a subset of them. 
+
+--
+
+2. `summarize()` one of its columns/variables with a summary statistic (e.g., mean, median, IQR).
+
+--
+
+3. `group_by()` its rows. In other words assign different rows to be part of the same group and report summary
+statistics for each group separately.
+
+--
+
+4. `mutate()` its existing columns/variables to create new ones. For example, convert flight distance from *miles* to *kilometers*. 
+
+--
+
+5. `arrange()` its rows. For example, sort flights based on descending delay time.
+
+---
+
+# `select()` columns
+
+.center[
+```{r, echo = FALSE, dpi = 300}
+knitr::include_graphics("dplyr_select.png")
+```
+]
+
+`select()` allows you to return a *subset* of **columns** of a data frame. 
+
+- This might not seem like much, but data frames with *many* columns (i.e., hundreds of variables) are not uncommon. 
+
+---
+
+# `select()` columns
+
+The `gapminder` data frame in the `gapminder` package contains data on life expectancy, GDP per capita, and population by country, spanning 1952-2007 (in increments of 5 years). 
+
+```{r, eval = FALSE}
+View(gapminder)
+```
+
+--
+
+Suppose we want a data frame with *only* the `country`, `year`, and `lifeExp` variables (columns). 
+
+```{r, eval = FALSE}
+gapminder_new = gapminder %>%
+  select(country, year, lifeExp)
+View(gapminder_new)
+```
+
+---
+
+# `filter()` rows
+
+.center[
+```{r, echo = FALSE, out.width = "70%"}
+knitr::include_graphics("dplyr_filter.png")
+```
+]
+
+- Specify criteria about the values of a variables in your dataset.
+
+- `filter()` out only those rows that match that criteria.
+
+---
+
+# `filter()`
+
+Let's focus only on flights from New York City to Boston, Massachusetts (`dest` code is "BOS").
+
+Run the following code, and use `View` to ensure that the only `dest` entries are "BOS":
+```{r, echo = TRUE, eval = FALSE}
+flights.bos = flights %>%
+  filter(dest == "BOS")
+View(flights.bos)
+```
+
+--
+
+We performed the following steps:
+
+1. Take the `flights` data frame, and then...
+2. `filter` the data frame so that only rows where `dest` equals "BOS" are included. 
+
+**Note**: We *test for equality* with `==`, rather than `=`. The single `=` is used for *assignment*. 
+
+---
+
+# Other Criteria in `filter()`
+
+You can use other criteria in `filter()` besides *equality* (`==`):
+- `<`: "less than"
+- `>`: "greater than"
+- `<=`: "less than or equal to"
+- `>=`: "greater than or equal to"
+- `!=`: "not equal to"
+
+--
+
+You can also combine *multiple criteria*:
+- `&`: "and" 
+    - **Example**: `day <= 15 & distance >= 1000`
+
+- `|`: "or"
+    - **Example**: `month != 3 | distance >= 1000`
+
+---
+
+# `select()` and `filter()` together
+
+Similar to when using *only* `select()`, we might want to perform other operations on the data in conjunction with `filter()`. 
+
+- We can conveniently construct a single *pipeline* with all of the operations!
+
+```{r, eval = FALSE}
+gapminder_new = gapminder %>%
+  select(country, year, lifeExp) %>%
+  filter(country == "United States")
+View(gapminder_new)
+```
+
+--
+
+You can even add a plot at the end of a pipeline!
+
+```{r, eval = FALSE}
+gapminder %>%
+  select(country, year, lifeExp) %>%
+  filter(country == "United States") %>%
+  ggplot(aes(x = year, y = lifeExp)) + 
+  geom_line() + 
+  labs(x = "Year", y = "Life Expectancy", title = "US Life Expectancy")
+```
+
+---
+
+# Non-pipeline equivalent
+
+Here is the equivalent code that does not use the `%>%` operator:
+
+```{r, eval = FALSE}
+gapminder_new = select(gapminder, country, year, lifeExp)
+gapminder_new = filter(gapminder_new, country == "United States")
+ggplot(gapminder_new, aes(x = year, y = lifeExp)) + 
+  geom_line() + 
+  labs(x = "Year", y = "Life Expectancy", title = "US Life Expectancy")
+```
+
+---
+
+# Filtering on multiple criteria
+
+We are not limited to a single criterion when using `filter()`. 
+
+- We can string together multiple criteria with `&` ("and"). 
+
+```{r, eval = FALSE}
+gapminder_new = gapminder %>%
+  filter(country %in% c("United States", "Canada") &
+           year >= 1980)
+View(gapminder_new)
+```
+
+The result of this pipeline is a data frame that includes data on *only* the countries **United States** *or* **Canada**, in **1980 or later**.
+
+--
+
+**Note**: We use the `%in%` to check for rows with `country` equal to *either* `"United States"` **or** `"Canada"`.
+
+---
+
+# Practice
+
+Using the `flights` dataset in the `nycflights13` package...
+
+1. Filter `flights` for all rows that:
+
+    - Departed from JFK (`origin == "JFK"`) airport **and**
+
+    - Were heading to Burlington, Vermont (`dest == "BTV"`) **or** Seattle, Washington (`dest == "SEA"`) **and**
+
+    - Departed in the months of October, November, or December.
+
+2. Select the destination, departure delay, arrival delay, and flight carrier variables from the data. 
+
+3. If you're feeling up to it, use the resulting data to make a **scatterplot** of arrival delay versus departure delay!
+
+---
+
+# Practice
+
+**Solution**
+
+```{r, eval = FALSE}
+flights_new = flights %>%
+  filter(origin == "JFK" &
+           dest %in% c("BTV", "SEA") & 
+           month %in% c(10, 11, 12)) %>%
+  select(dest, dep_delay, arr_delay, carrier)
+
+flights_new %>%
+  ggplot(aes(x = dep_delay, y = arr_delay)) + 
+  geom_point(alpha = 0.4) +
+  theme_bw() + 
+  labs(x = "Departure Delay (in mins)", y = "Arrival Delay (in mins)")
+```
+
+(Note the careful use of parentheses around `dest == "BTV" | dest == "SEA"`.)
+
+You can use the `%in% c(...)` to string together multiple "or" statements. 

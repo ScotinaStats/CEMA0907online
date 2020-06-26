@@ -1,0 +1,451 @@
+---
+title: "CEMA 0907: Statistics in the Real World"
+subtitle: "Other Verbs"
+author: "Anthony Scotina"
+date: 
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    css: my-theme.css
+    nature:
+      countIncrementalSlides: false
+      highlightLines: true
+---
+
+```{r xaringan-themer, include = FALSE}
+library(xaringanthemer)
+mono_accent(base_color = "#4682B4") #3E8A83?
+```
+
+```{r, include = FALSE}
+library(plyr)
+library(tidyverse)
+library(moderndive)
+library(infer)
+library(nycflights13)
+library(gapminder)
+```
+
+# Needed Packages 
+
+```{r, warning = FALSE, message = FALSE}
+library(tidyverse) # includes ggplot2 and dplyr
+library(nycflights13)
+library(lubridate) # Install this!
+```
+
+---
+
+class: center, middle
+
+# Data Cleaning: Tips and Tricks
+
+## (Anthony's Favorite Things)
+
+---
+
+# Counting Observations per group
+
+```{r, message = FALSE, warning = FALSE}
+video_games <- read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-07-30/video_games.csv")
+
+```
+
+- `number`:	Game number
+- `game`: Game Title
+- `release_date`:	Release date
+- `price`: US Dollars + Cents
+- `owners`: Estimated number of people owning this game
+- `developer`: Group that developed the game
+- `publisher`: Group that published the game
+- `average_playtime`: Average playtime in minutes
+- `median_playtime`: Median playtime in minutes
+- `metascore`: Metascore rating
+
+**Question**: How would you count the number of games *per publisher*, and then *arrange* by count?
+
+---
+
+# Counting Observations per group
+
+Using some of `dplyr`'s data wrangling functions, we can do this in several lines:
+
+```{r, results = 'hide'}
+video_games %>%
+  group_by(publisher) %>%
+  summarize(N_games = n()) %>%
+  arrange(desc(N_games))
+```
+
+--
+
+This pipeline:
+
+1. **groups by** `publisher`, 
+
+2. **summarizes** the data by simply counting the *number of rows* (`n()`) per publisher, and 
+
+3. **arranges in descending order** by the newly-created `N_games`. 
+
+---
+
+# `count()`
+
+The `count()` function is one of my **favorites**!
+
+- `count()` simply *count* the number of observations **by group**. 
+
+```{r, eval = FALSE}
+video_games %>%
+  count(publisher)
+```
+
+- This returns a table with the groups and the number of observations per group. 
+
+---
+
+# `count()`
+
+If you want to `arrange` by `n` (the number of observations per group), you *could* use arrange...
+
+```{r, eval = FALSE}
+video_games %>%
+  count(publisher) %>%
+  arrange(desc(n))
+```
+
+---
+
+# `count()`
+
+You *could also* just use the `sort = TRUE` option in `count()` to sort in **descending order**:
+
+```{r}
+video_games %>%
+  count(publisher, sort = TRUE)
+```
+
+---
+
+# Lumping Factors
+
+<strike>Let's make a **barplot** of *games per publisher*:</strike>
+
+**Caution**: Don't actually make a barplot. There are 13,954 *unique publishers* (as seen in the previous `count()` table). 
+
+```{r, eval = FALSE}
+ggplot(video_games, aes(x = publisher)) + 
+  geom_bar() + 
+  coord_flip()
+```
+
+---
+
+# `fct_lump()`
+
+The `fct_lump()` function is one of my **favorites**!
+
+- `fct_lump()` is a `forcats` package function (part of the `tidyverse`) that **lumps together** the least common *factor* levels into a level named `"Other"`. 
+
+```{r}
+video_games %>%
+  mutate(publisher_lump = fct_lump(publisher, n = 5)) %>% #<<
+  count(publisher_lump, sort = TRUE)
+```
+
+---
+
+# `fct_lump()`
+
+**Now** we can make a barplot without R crashing!
+
+```{r, out.width = "40%", dpi = 300}
+video_games %>%
+  mutate(publisher_lump = fct_lump(publisher, n = 5)) %>% 
+  ggplot(aes(x = publisher_lump)) + 
+  geom_bar() + 
+  labs(x = "Publisher", y = "Count") + 
+  coord_flip()
+```
+
+---
+
+# `fct_lump()`
+
+**Note**: In this case, I would probably make the barplot *without* the `Other` category in this context. 
+
+- But using `fct_lump()` makes it a bit easier to `filter()` afterwards:
+
+```{r, eval = FALSE}
+video_games %>%
+  mutate(publisher_lump = fct_lump(publisher, n = 5)) %>% 
+  filter(publisher_lump != "Other") %>% #<<
+  ggplot(aes(x = publisher_lump)) + 
+  geom_bar() + 
+  labs(x = "Publisher", y = "Count") + 
+  coord_flip()
+```
+
+---
+
+# `fct_reorder()` with `geom_col()`
+
+Let's stay with `forcats` for a bit. 
+
+It is usually preferable to arrange a *barplot* (or *boxplots*/*stripplots*) so that the bars are in **ascending** or **descending order** based on the *y*-axis variable. 
+
+- Using `fct_reorder()` within `ggplot()` (with `geom_col()`) can get us there!
+
+```{r, eval = FALSE}
+video_games %>%
+  mutate(publisher_lump = fct_lump(publisher, n = 5)) %>% 
+  filter(publisher_lump != "Other") %>%
+  count(publisher_lump) %>% 
+  ggplot(aes(x = fct_reorder(publisher_lump, n), y = n)) + 
+  geom_col() + 
+  labs(x = "Publisher", y = "Count") + 
+  coord_flip()
+```
+
+---
+
+# `fct_reorder()` with `geom_col()`
+
+You can also use `fct_reorder()` with a *summary statistic*, so that the bars in `geom_col()` are arranged based on the statistic (instead of *Count*):
+
+```{r, eval = FALSE}
+video_games %>%
+  mutate(publisher_lump = fct_lump(publisher, n = 5)) %>% 
+  filter(publisher_lump != "Other") %>%
+  group_by(publisher_lump) %>% #<<
+  summarize(mean_price = mean(price, na.rm = TRUE)) %>% #<<
+  ggplot(aes(x = fct_reorder(publisher_lump, mean_price), y = mean_price)) + 
+  geom_col() + 
+  labs(x = "Publisher", y = "Average Price (in $, by publisher)") + 
+  coord_flip()
+```
+
+---
+
+# Working with Dates
+
+The `video_games` dataset also has a *Date* column (`release_date`), in the format *MONTH DAY, YEAR*. 
+
+- We can use `lubridate` to extract the *month* and *year* as separate columns:
+
+```{r, message = FALSE, warning = FALSE}
+video_games = video_games %>%
+  mutate(release_month = month(mdy(release_date), label = TRUE), 
+         release_year = year(mdy(release_date)))
+```
+
+--
+
+**Notes**
+
+- We used `mdy()` to first convert the dates to `"Date"` objects of the *month, day, year* format. 
+
+- The `month()` and `year()` functions extracted the *month* and *year* from each `release_date`, and saved them as separate columns. 
+
+---
+
+# Working with Dates
+
+Let's create a visualization of mean ratings of games **by month**:
+
+```{r, warning = FALSE, eval = FALSE}
+video_games %>%
+  group_by(release_month) %>%
+  summarize(mean_price = mean(price, na.rm = TRUE)) %>%
+  na.omit() %>% # REMOVES MISSING MONTH 
+  ggplot(aes(x = release_month, y = mean_price)) + 
+  geom_col() + 
+  labs(x = "", y = "Average Price (in $, by publisher)") + 
+  coord_flip()
+```
+
+---
+
+# `separate()`
+
+`separate()` is a `tidyr` function that can be used if you convert a *character* column into multiple other character columns. 
+
+We'll use the `nyc_restaurants` data from *TidyTuesday* (more on this dataset [HERE](https://github.com/rfordatascience/tidytuesday/tree/master/data/2018/2018-12-11)):
+
+```{r, warning = FALSE, message = FALSE}
+nyc_restaurants <- read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2018/2018-12-11/nyc_restaurants.csv")
+```
+
+```{r, eval = FALSE}
+View(nyc_restaurants)
+```
+
+--
+
+One variable, `inspection_type`, is defined as follows:
+
+> A combination of the inspection program and the type of inspection performed; See Data Dictionary for full list of expected values
+
+---
+
+# `separate()`
+
+There are **a lot** of different `inspection_type` categories:
+
+```{r}
+nyc_restaurants %>%
+  count(inspection_type, sort = TRUE) 
+```
+
+---
+
+# `separate()`
+
+This means that making a useful visualization with all of these categories could be challenging!
+
+```{r, eval = FALSE}
+nyc_restaurants %>%
+  count(inspection_type, sort = TRUE) %>%
+  ggplot(aes(x = fct_reorder(inspection_type, n), y = n)) + 
+  geom_col() + 
+  labs(x = "", y = "Count") +
+  coord_flip() 
+```
+
+---
+
+# `separate()`
+
+Let's take `inspection_type` and `separate()` it into two columns: `inspection_program` and `inspection_type`:
+
+```{r}
+nyc_restaurants_sep = nyc_restaurants %>%
+  separate(inspection_type, 
+           into = c("inspection_program", "inspection_type"), 
+           sep = "/")
+```
+
+--
+
+**Notes**
+
+- The `into` argument gives the names of the **new columns** into which we are *separating* the original column. 
+
+- The `sep` argument is the character that serves as the *separator* between columns. 
+    - In the original dataset, the `inspection_type` variable includes the different pieces of information separated by a `"/"`.
+
+---
+
+# `separate()`
+
+```{r, eval = FALSE}
+nyc_restaurants_sep %>%
+  count(inspection_program) %>%
+  na.omit() %>% # REMOVES NA CATEGORY
+  ggplot(aes(x = fct_reorder(inspection_program, n), y = n)) + 
+  geom_col(aes(fill = inspection_program), color = "black") + 
+  labs(x = "", y = "Count") + 
+  coord_flip() + 
+  theme_bw() + 
+  theme(legend.position = "none")
+```
+
+---
+
+# `separate()`
+
+Another way to **reorder** categories by frequency is by `fct_infreq()`. 
+- With this we'll use `geom_bar()` instead of `geom_col()`, since we aren't first creating a *summary table*. 
+
+```{r, eval = FALSE}
+nyc_restaurants_sep %>%
+  filter(!is.na(inspection_program)) %>%
+  ggplot(aes(x = fct_infreq(inspection_program))) + #<<
+  geom_bar(aes(fill = inspection_type), color = "black") + 
+  labs(x = "", y = "Count", fill = "Inspection Type") + 
+  coord_flip() + 
+  theme_bw()
+```
+
+---
+
+# `scales::comma`
+
+Many visualizations will have an axis that uses a *continuous numerical* scale. By default, R does not add commas to large numbers. 
+
+- We can fix this by using `label = scales::comma` within `scale_x_continuous()` or `scale_y_continuous()`:
+
+```{r, eval = FALSE}
+nyc_restaurants_sep %>%
+  filter(!is.na(inspection_program)) %>%
+  ggplot(aes(x = fct_infreq(inspection_program))) + #<<
+  geom_bar(aes(fill = inspection_type), color = "black") + 
+  labs(x = "", y = "Count", fill = "Inspection Type") + 
+  coord_flip() + 
+  theme_bw() + 
+  scale_y_continuous(label = scales::comma)
+```
+
+---
+
+# Filtering Using Text Expressions
+
+The `violation_description` column contains a **plain text** description of each unique violation. 
+
+- Let's see which **boroughs** have restaurants with the most *roach-related* violations!
+
+--
+
+We can use one of many `stringr` package (part of the `tidyverse`) functions to extract information about a particular *text pattern* from a character vector. 
+
+In particular, `str_detect()` detects the *presence* of a pattern within a string of text. 
+
+```{r, eval = FALSE}
+?str_detect
+```
+
+---
+
+# Filtering Using Text Expressions
+
+We will use `str_detect()` in combination with `mutate()` to create a `logical` variable for whether or not each restaurant had a roach-related violation:
+
+- `str_detect()` returns `TRUE` or `FALSE` depending on whether the given `pattern` appears within the `string`. 
+
+```{r}
+nyc_restaurants = nyc_restaurants %>%
+  mutate(roach_violation =
+    str_detect(string = violation_description, 
+               pattern = "roach"))
+```
+
+---
+
+# Roach Violations in NY
+
+```{r, dpi = 300, out.width = "40%"}
+nyc_restaurants %>%
+  filter(roach_violation == TRUE) %>%
+  ggplot(aes(x = fct_infreq(boro))) + 
+  geom_bar() + 
+  labs(x = "", y = "Count", 
+       title = "Which NYC Boroughs have the most Roach-related Violations?") +
+  coord_flip() + 
+  theme_bw() 
+```
+
+---
+
+# Practice
+
+Use some of the tips you learned and play with the **Tidy Tuesday** `big_epa_cars` data (more info [HERE](https://github.com/rfordatascience/tidytuesday/tree/master/data/2019/2019-10-15)). 
+
+```{r, message = FALSE, warning = FALSE}
+big_epa_cars = read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-10-15/big_epa_cars.csv")
+```
+
+```{r, eval = FALSE}
+View(big_epa_cars)
+```
+
+Specifically, examine the `make` column and think about how you can create a useful visualization of the make of different cars. 

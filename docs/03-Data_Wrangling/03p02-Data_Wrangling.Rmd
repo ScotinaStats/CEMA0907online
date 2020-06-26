@@ -1,0 +1,99 @@
+---
+title: "CEMA 0907: Statistics in the Real World"
+subtitle: "summarize() variables"
+author: "Anthony Scotina"
+date: 
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    css: my-theme.css
+    nature:
+      countIncrementalSlides: false
+      highlightLines: true
+---
+
+```{r xaringan-themer, include = FALSE}
+library(xaringanthemer)
+mono_accent(base_color = "#4682B4") #3E8A83?
+```
+
+```{r, include = FALSE}
+library(plyr)
+library(tidyverse)
+library(moderndive)
+library(infer)
+library(nycflights13)
+library(gapminder)
+```
+
+# Needed Packages 
+
+```{r}
+library(tidyverse) # includes ggplot2 and dplyr
+library(nycflights13)
+```
+
+---
+
+# `summarize()` variables
+
+.center[
+```{r, echo = FALSE, out.width = "70%"}
+knitr::include_graphics("dplyr_summarize.png")
+```
+]
+
+- Return **summary statistics** of a variable (e.g., `mean`, `sd`, `IQR`, `sum`, `median`, `max`).
+
+---
+
+# `summarize()`
+
+Using the `weather` data frame, let's calculate the **mean** and **standard deviation** of `temp` (temperature). 
+
+```{r, comment = ""}
+summary.temp = weather %>%
+  summarize(mean.temp = mean(temp), 
+            sd.temp = sd(temp))
+summary.temp
+```
+
+--
+
+Uh oh, what happened?!
+
+- If there are **missing values** (`NA` values) in a variable, any summary statistic in R outputs `NA` by default. 
+
+---
+
+# `summarize()`
+
+If a variable has `NA` values, we can still calculate a mean or standard deviation!
+- We just need to add `na.rm = TRUE` to the `mean()` and `sd()` calculations. 
+
+```{r, comment = ""}
+summary.temp = weather %>%
+  summarize(mean.temp = mean(temp, na.rm = TRUE), 
+            sd.temp = sd(temp, na.rm = TRUE))
+summary.temp
+```
+
+The line `na.rm` stands for "NA remove."
+
+---
+
+# Some Common Summary Functions
+
+Here are some common functions used in `summarize()`:
+- `mean()`: the **mean** AKA the average
+- `sd()`: the **standard deviation**, which is a measure of spread
+- `min()` and `max()`: the **minimum** and **maximum** values respectively
+- `IQR()`: **Interquartile range**
+- `sum()`: the **sum**
+- `n()`: a **count of the number of rows/observations** in each group. This particular summary function will make more sense when we introduce `group_by()`.
+
+---
+
+# Practice
+
+Find the **minimum** and **maximum** `temp` in the `weather` data frame. 

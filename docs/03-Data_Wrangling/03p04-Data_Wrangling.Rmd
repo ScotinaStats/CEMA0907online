@@ -1,0 +1,152 @@
+---
+title: "CEMA 0907: Statistics in the Real World"
+subtitle: "mutate() existing variables"
+author: "Anthony Scotina"
+date: 
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    css: my-theme.css
+    nature:
+      countIncrementalSlides: false
+      highlightLines: true
+---
+
+```{r xaringan-themer, include = FALSE}
+library(xaringanthemer)
+mono_accent(base_color = "#4682B4") #3E8A83?
+```
+
+```{r, include = FALSE}
+library(plyr)
+library(tidyverse)
+library(moderndive)
+library(infer)
+library(nycflights13)
+library(gapminder)
+```
+
+# Needed Packages 
+
+```{r}
+library(tidyverse) # includes ggplot2 and dplyr
+library(nycflights13)
+library(gapminder)
+```
+
+---
+
+# `mutate()` existing variables
+
+.center[
+```{r, echo = FALSE, out.width = "70%"}
+knitr::include_graphics("dplyr_mutate.png")
+```
+]
+
+- Using `mutate()`, we can take existing variables and *transform* them into new variables. 
+
+---
+
+# `mutate()`
+
+In the `weather` data frame, the variable `temp` is temperature in **degrees Fahrenheit**. To convert this to **degrees Celcius**, we use the formula:
+
+$$\text{temp in C}=\frac{\text{temp in F}-32}{1.8}$$
+
+--
+
+Using `mutate`, we can create the variable `temp.C` using the existing `temp`:
+```{r, eval = FALSE}
+weather = weather %>%
+  mutate(temp.C = (temp - 32)/1.8)
+View(weather)
+```
+
+---
+
+# `mutate()`
+
+```{r, eval = FALSE}
+weather = weather %>%
+  mutate(temp.C = (temp - 32)/1.8)
+View(weather)
+```
+
+Note that we call this new data frame `weather`, which *overwrites* the existing one that comes with the `nycflights13` package. 
+
+- **Why?** We are not *losing* any information; only *adding* new information!
+- The original `temp` variable is still part of the data frame. 
+
+---
+
+# `mutate()`
+
+We can use the results of `mutate()` with other functions we already covered, such as `group_by()` and `summarize()`:
+
+```{r, include = FALSE}
+weather = weather %>%
+  mutate(temp.C = (temp - 32)/1.8)
+```
+```{r, eval = FALSE, comment = ""}
+summary.temp.monthly = weather %>%
+  group_by(month) %>%
+  summarize(mean.temp.F = mean(temp, na.rm = T), 
+            mean.temp.C = mean(temp.C, na.rm = T))
+View(summary.temp.monthly)
+```
+
+---
+
+# `mutate()` 
+
+Suppose we wanted to recover each state's **total GDP**. 
+
+```{r}
+head(gapminder, 5)
+```
+
+The `gapminder` dataset has the `pop` and `gdpPercap` variables already, so we can *create* a new `gdp` variable by multiplying them together. 
+
+---
+
+# `mutate()`
+
+Using `mutate()`, we can create a new variable called `gdp` by multiplying `pop` and `gdpPercap`:
+
+```{r, eval = FALSE}
+gapminder_new = gapminder %>%
+  mutate(gdp = pop*gdpPercap)
+View(gapminder_new)
+```
+
+--
+
+We could use `mutate()` along with `filter()` and `select()` to see how the total GDP has changed in the United States over the years:
+```{r, eval = FALSE}
+gapminder %>%
+  filter(country == "United States") %>%
+  mutate(gdp = pop*gdpPercap) %>%
+  select(country, year, gdp)
+```
+
+---
+
+# Practice
+
+Refer to the `dimaonds` data frame. 
+
+- The variable `carat` refers to the weight of the diamond, where **1 carat = 200 milligrams**. 
+- Create a new variable, `mg`, by using this formula: 
+$$\text{mg}=\text{carat}*200$$
+
+--
+
+*Solution*
+
+```{r, eval = FALSE}
+diamonds = diamonds %>%
+  mutate(mg = carat*200)
+View(diamonds)
+```
+

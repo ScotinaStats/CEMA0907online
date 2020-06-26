@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>CEMA 0907: Statistics in the Real World</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Anthony Scotina" />
+    <link rel="stylesheet" href="my-theme.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# CEMA 0907: Statistics in the Real World
+## mutate() existing variables
+### Anthony Scotina
+
+---
+
+
+
+
+
+
+# Needed Packages 
+
+
+```r
+library(tidyverse) # includes ggplot2 and dplyr
+library(nycflights13)
+library(gapminder)
+```
+
+---
+
+# `mutate()` existing variables
+
+.center[
+&lt;img src="dplyr_mutate.png" width="70%" /&gt;
+]
+
+- Using `mutate()`, we can take existing variables and *transform* them into new variables. 
+
+---
+
+# `mutate()`
+
+In the `weather` data frame, the variable `temp` is temperature in **degrees Fahrenheit**. To convert this to **degrees Celcius**, we use the formula:
+
+`$$\text{temp in C}=\frac{\text{temp in F}-32}{1.8}$$`
+
+--
+
+Using `mutate`, we can create the variable `temp.C` using the existing `temp`:
+
+```r
+weather = weather %&gt;%
+  mutate(temp.C = (temp - 32)/1.8)
+View(weather)
+```
+
+---
+
+# `mutate()`
+
+
+```r
+weather = weather %&gt;%
+  mutate(temp.C = (temp - 32)/1.8)
+View(weather)
+```
+
+Note that we call this new data frame `weather`, which *overwrites* the existing one that comes with the `nycflights13` package. 
+
+- **Why?** We are not *losing* any information; only *adding* new information!
+- The original `temp` variable is still part of the data frame. 
+
+---
+
+# `mutate()`
+
+We can use the results of `mutate()` with other functions we already covered, such as `group_by()` and `summarize()`:
+
+
+
+```r
+summary.temp.monthly = weather %&gt;%
+  group_by(month) %&gt;%
+  summarize(mean.temp.F = mean(temp, na.rm = T), 
+            mean.temp.C = mean(temp.C, na.rm = T))
+View(summary.temp.monthly)
+```
+
+---
+
+# `mutate()` 
+
+Suppose we wanted to recover each state's **total GDP**. 
+
+
+```r
+head(gapminder, 5)
+```
+
+```
+## # A tibble: 5 x 6
+##   country     continent  year lifeExp      pop gdpPercap
+##   &lt;fct&gt;       &lt;fct&gt;     &lt;int&gt;   &lt;dbl&gt;    &lt;int&gt;     &lt;dbl&gt;
+## 1 Afghanistan Asia       1952    28.8  8425333      779.
+## 2 Afghanistan Asia       1957    30.3  9240934      821.
+## 3 Afghanistan Asia       1962    32.0 10267083      853.
+## 4 Afghanistan Asia       1967    34.0 11537966      836.
+## 5 Afghanistan Asia       1972    36.1 13079460      740.
+```
+
+The `gapminder` dataset has the `pop` and `gdpPercap` variables already, so we can *create* a new `gdp` variable by multiplying them together. 
+
+---
+
+# `mutate()`
+
+Using `mutate()`, we can create a new variable called `gdp` by multiplying `pop` and `gdpPercap`:
+
+
+```r
+gapminder_new = gapminder %&gt;%
+  mutate(gdp = pop*gdpPercap)
+View(gapminder_new)
+```
+
+--
+
+We could use `mutate()` along with `filter()` and `select()` to see how the total GDP has changed in the United States over the years:
+
+```r
+gapminder %&gt;%
+  filter(country == "United States") %&gt;%
+  mutate(gdp = pop*gdpPercap) %&gt;%
+  select(country, year, gdp)
+```
+
+---
+
+# Practice
+
+Refer to the `dimaonds` data frame. 
+
+- The variable `carat` refers to the weight of the diamond, where **1 carat = 200 milligrams**. 
+- Create a new variable, `mg`, by using this formula: 
+`$$\text{mg}=\text{carat}*200$$`
+
+--
+
+*Solution*
+
+
+```r
+diamonds = diamonds %&gt;%
+  mutate(mg = carat*200)
+View(diamonds)
+```
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"countIncrementalSlides": false,
+"highlightLines": true
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
