@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>CEMA 0907: Statistics in the Real World</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Anthony Scotina" />
+    <link rel="stylesheet" href="my-theme.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# CEMA 0907: Statistics in the Real World
+## Conducting Hypothesis Tests (PART 1)
+### Anthony Scotina
+
+---
+
+
+
+
+
+
+# Needed Packages 
+
+
+```r
+library(tidyverse)
+library(infer)
+library(nycflights13)
+```
+
+---
+
+class: center, middle
+
+# Hypothesis Testing in R
+
+---
+
+# `infer`
+
+.center[
+&lt;img src="infer.png" width="2059" /&gt;
+]
+
+---
+
+# `hypothesize()`
+
+You have seen most of these `infer` package functions when we constructed **confidence intervals**. 
+- Confidence intervals are *closely related* to hypothesis tests!
+
+The only new verb-named fucntion here is `hypothesize()`:
+- Its main argument is `null`, which is either:
+    - `point` for hypotheses involving a *single sample*
+    - `independence` for hypotheses involving a *comparison between groups*
+    
+---
+
+# Comparing Two Means
+
+First we will build hypotheses which look at the **difference between two population means**. 
+
+Recall that `\(\mu\)` ("mu") denotes a single population mean. 
+- When we have *two groups*... 
+    - Let `\(\mu_{1}\)` be the population mean of group 1. 
+    - Let `\(\mu_{2}\)` be the population mean of group 2. 
+    
+--
+
+**Two competing hypotheses**
+
+`\(H_{0}\)`: `\(\mu_{1}=\mu_{2}\)` (The population means are equivalent between groups.)
+
+`\(H_{a}\)`: `\(\mu_{1}\neq \mu_{2}\)` (or `\(&lt;\)`, `\(&gt;\)` depending on the context)
+
+---
+
+# Action vs. Romance Movies
+
+The `movies_sample` dataset contains a sample of 200 *action* and *romance* movies, along with their title, year of release, and IMDB.com rating. 
+
+
+
+
+```r
+movies_sample
+```
+
+```
+# A tibble: 200 x 4
+   title                        year rating genre 
+   &lt;chr&gt;                       &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt; 
+ 1 Sinnui yauman III: Do Do Do  1991    7   Action
+ 2 Thunderpoint                 1998    7   Action
+ 3 Navajo Blues                 1996    3   Action
+ 4 Steel and Lace               1991    5.4 Action
+ 5 Joi gin a long               1999    6.6 Action
+ 6 Collectors, The              1999    3.8 Action
+ 7 Lawless Empire               1945    5.1 Action
+ 8 City on Fire                 1979    3.4 Action
+ 9 Lost at Sea                  1995    5.8 Action
+10 Last of the Finest, The      1990    5.2 Action
+# … with 190 more rows
+```
+
+---
+
+# Action vs. Romance Movies
+
+**Question**: Is there a *significant difference* in the **average movie ratings** of Action vs. Romance movies on IMDB.com?
+
+--
+
+Let `\(\mu_{a}\)` denote the *population mean* rating of Action movies, and let `\(\mu_{r}\)` denote the *population mean* rating of Romance movies. 
+- `\(H_{0}\)`: `\(\mu_{a}=\mu_{r}\)`
+- `\(H_{a}\)`: `\(\mu_{a}\neq \mu_{r}\)`
+
+---
+
+# Exploratory Data Analysis: Data Visualization
+
+
+```r
+ggplot(data = movies_sample, mapping = aes(x = genre, y = rating)) + 
+  geom_boxplot()
+```
+
+&lt;img src="09p02-Hypothesis_Testing_files/figure-html/unnamed-chunk-6-1.png" width="45%" /&gt;
+
+---
+
+# Exploratory Data Analysis: Summary Statistics
+
+Unlike the comparison in flight times between BOS and SFO destinations, it is unclear if the *average* movie rating is **significantly different** between Action and Romance movies. 
+
+Let's calculate **summary statistics** *by group* to gather more detail:
+
+```r
+summary_stats = movies_sample %&gt;%
+  group_by(genre) %&gt;%
+  summarize(mean = mean(rating), sd = sd(rating))
+summary_stats
+```
+
+```
+# A tibble: 2 x 3
+  genre    mean    sd
+  &lt;chr&gt;   &lt;dbl&gt; &lt;dbl&gt;
+1 Action   5.04  1.59
+2 Romance  6.19  1.31
+```
+
+---
+
+# Exploratory Data Analysis: Summary Statistics
+
+
+```
+# A tibble: 2 x 3
+  genre    mean    sd
+  &lt;chr&gt;   &lt;dbl&gt; &lt;dbl&gt;
+1 Action   5.04  1.59
+2 Romance  6.19  1.31
+```
+
+Since we are interested in inference about the **difference between means**, our *sample statistic* will be the **difference between sample means**. 
+- `\(\bar{x}_{r}=6.19\)` and `\(\bar{x}_{a}=5.04\)`, so `\(\bar{x}_{r}-\bar{x}_{a}=1.15\)`.
+
+---
+
+# Observed Effect
+
+Another way of writing the sample statistic in hypothesis testing is to call it the **observed effect**, `\(\delta^{*}\)` ("delta star"). 
+
+There is a more convenient way of calculating this in R, using the `infer` package:
+
+```r
+obs_diff = movies_sample %&gt;% 
+* specify(formula = rating ~ genre) %&gt;%
+  calculate(stat = "diff in means", order = c("Romance", "Action"))
+obs_diff
+```
+
+```
+# A tibble: 1 x 1
+   stat
+  &lt;dbl&gt;
+1  1.15
+```
+
+- Recall the `specify()` and `calculate()` functions from earlier. 
+
+---
+
+# Simulating the Null Hypothesis
+
+Now that we calculated the **sample statistic** (or the *observed effect*), the next step in a statistical hypothesis test is to simulate a world where the **null hypothesis is true**. 
+- `\(H_{0}\)`: `\(\mu_{a}=\mu_{r}\)`, or `\(\mu_{r}-\mu_{a}=0\)`
+
+We can *simulate* this using `generate()`. 
+
+---
+
+# Simulating the Null Hypothesis
+
+If we *assume* that the population mean rating is **equal** between Action and Romance movies, then assuming `\(H_{0}\)` true is equivalent to taking all 200 ratings and *randomly re-shuffling* (**randomizing**) them into the Action and Romance groups. 
+- If `\(H_{0}\)` is true, then there is no association between `genre` and `rating`, so each rating is *equally likely* to appear in either group. 
+
+--
+
+This is the framework that `generate()` follows.
+
+
+
+
+```r
+movies_sample %&gt;% 
+  specify(formula = rating ~ genre) %&gt;%
+  hypothesize(null = "independence") %&gt;% 
+  generate(reps = 1) %&gt;% 
+  calculate(stat = "diff in means", order = c("Romance", "Action"))
+```
+
+```
+# A tibble: 1 x 1
+    stat
+   &lt;dbl&gt;
+1 -0.031
+```
+
+---
+
+# Simulating the Null Hypothesis
+
+
+
+
+```r
+movies_sample %&gt;% 
+* specify(formula = rating ~ genre) %&gt;%
+* hypothesize(null = "independence") %&gt;%
+  generate(reps = 1) %&gt;% 
+  calculate(stat = "diff in means", order = c("Romance", "Action"))
+```
+
+```
+# A tibble: 1 x 1
+    stat
+   &lt;dbl&gt;
+1 -0.031
+```
+
+- `generate(reps = 1)` completes a single **permutation** of sending values of `ratings` to potentially different values of `genre` from which they originally came. 
+
+--
+
+- Similar to **bootstrapping**, we can repeat this process 5,000 times, to simulate a world where the **null hypothesis** is true. 
+
+---
+
+# Distribution Under the Null Hypothesis
+
+
+```r
+generated_samples = movies_sample %&gt;% 
+  specify(formula = rating ~ genre) %&gt;% 
+  hypothesize(null = "independence") %&gt;% 
+  generate(reps = 5000) %&gt;%
+  calculate(stat = "diff in means", order = c("Romance", "Action"))
+```
+
+This creates a *distribution* of 5,000 **simulated** differences in sample means, called the **null distribution**.
+- The **null distribution** is similar to the **bootstrap distribution** since we are just resampling from our original sample. 
+- The difference here is that we are *assuming the null hypothesis is true*. 
+
+---
+
+# The Null Distribution
+
+
+```r
+generated_samples %&gt;%
+  visualize()
+```
+
+&lt;img src="09p02-Hypothesis_Testing_files/figure-html/unnamed-chunk-15-1.png" width="50%" /&gt;
+
+---
+
+# The Null Distribution
+
+
+```r
+generated_samples %&gt;%
+  visualize(obs_stat = 1.15)
+```
+
+&lt;img src="09p02-Hypothesis_Testing_files/figure-html/unnamed-chunk-16-1.png" width="50%" /&gt;
+
+---
+
+# Quantifying the Strength of Evidence
+
+We are interested in seeing if our *observed* sample difference in mean movie rating between Action and Romance of 1.15 is *greater than what would be expected from random chance*. 
+- What are the chances of observing a sample average difference in means of 1.15, *in a world where the population averages between genres are equal*?
+
+How can we **quantify** these chances?
+- If these chances where *small*, we could **reject the null hypothesis**. 
+
+
+---
+
+# The p-value
+
+the **p-value** is the probability of observing a **sample statistic** as extreme (or more extreme) than the one in the original sample, *assuming the null hypothesis is true*. 
+
+--
+
+
+```r
+generated_samples %&gt;%
+  visualize(obs_stat = 1.15, direction = "both")
+```
+
+&lt;img src="09p02-Hypothesis_Testing_files/figure-html/unnamed-chunk-17-1.png" width="40%" /&gt;
+
+---
+
+# The p-value
+
+.pull-left[
+![](09p02-Hypothesis_Testing_files/figure-html/unnamed-chunk-18-1.png)&lt;!-- --&gt;
+]
+
+.pull-right[
+Our *observed* **sample difference in means** was 1.15: On average, Romance movies had a IMDB.com rating that was 1.15 higher than Action movies. 
+- We mark this with a *red line*, and shade red all values at or above that value...
+    - and also shaded red those values at or below its negative value. 
+]
+
+---
+
+# The p-value
+
+.pull-left[
+![](09p02-Hypothesis_Testing_files/figure-html/unnamed-chunk-19-1.png)&lt;!-- --&gt;
+]
+
+.pull-right[
+You can probably guess what the p-value will be for this example. 
+- The red shading does not intersect the histogram at all!
+]
+
+---
+
+# Calculating the p-value
+
+
+```r
+pvalue = generated_samples %&gt;% 
+  get_pvalue(obs_stat = 1.15, direction = "both")
+pvalue
+```
+
+```
+# A tibble: 1 x 1
+  p_value
+    &lt;dbl&gt;
+1       0
+```
+
+--
+
+Assuming a 5% **level of significance**, we have evidence supporting the conclusion that the mean rating for romance movies is different from that of action movies.
+- p-value `\(&lt;0.05\)`
+- In other words, we **reject the null hypothesis** and **conclude the alternative hypothesis**.
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

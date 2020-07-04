@@ -1,0 +1,281 @@
+---
+title: "CEMA 0907: Statistics in the Real World"
+subtitle: "Understanding Hypothesis Tests"
+author: "Anthony Scotina"
+date: 
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    css: my-theme.css
+    nature:
+      highlightLines: true
+      countIncrementalSlides: false
+---
+
+```{r xaringan-themer, include = FALSE}
+library(xaringanthemer)
+mono_accent(base_color = "#43418A")
+```
+
+```{r, include = FALSE}
+library(tidyverse)
+library(infer)
+library(nycflights13)
+library(ggplot2movies)
+library(broom)
+```
+
+# Needed Packages 
+
+```{r}
+library(tidyverse)
+library(infer)
+library(nycflights13)
+```
+
+---
+
+class: center, middle
+
+# When inference is not needed
+
+---
+
+# Back to the `flights` data frame
+
+Sometimes, it isn't necessary to perform a statistical hypothesis test. 
+- *Always* do **exploratory data analysis**!
+
+--
+
+```{r, eval = FALSE}
+View(flights)
+```
+
+---
+
+# Average Flight Times 
+
+Assuming two flights leave from New York, which do you think is longer?
+- The flight to **Boston**?
+- The flight to **San Francisco**?
+
+--
+
+```{r}
+bos_sfo = flights %>%
+  na.omit() %>% # removes flights with missing info
+  filter(dest %in% c("BOS", "SFO")) 
+```
+
+---
+
+# Exploratory Data Analysis: Summary Statistics
+
+```{r, comment = ""}
+bos_sfo %>%
+  group_by(dest) %>%
+  summarize(mean = mean(air_time), sd = sd(air_time))
+```
+
+---
+
+# Exploratory Data Analysis: Data Visualization
+
+```{r, out.width = "45%"}
+ggplot(data = bos_sfo, mapping = aes(x = dest, y = air_time)) + 
+  geom_boxplot()
+```
+
+---
+
+# Summary
+
+There is *no overlap at all* in the boxplots!
+- This means that the air time for San Francisco flights is **statistically greater** than the air time for Boston flights (which isn't surprising). 
+
+The procedures that follow *would not be necessary* for data such as these. 
+- Always do **exploratory data analysis**!!!
+
+---
+
+class: center, middle
+
+# Basics of Hypothesis Testing
+
+---
+
+# Hypothesis Tests
+
+In a statistical **hypothesis test**, we use *sample data* to help us decide between two competing hypotheses about a *population parameter*. 
+- The **null hypothesis** 
+    - $H_{0}$
+- The **alternative hypothesis**
+    - $H_{a}$
+
+--
+
+The **alternative hypothesis** is the claim for which we seek significant evidence. 
+- **Example**: Are the flight times for flights from NY to BOS or SFO *significantly different*?
+
+--
+
+The **null hypothesis** is usually a claim of *no effect* or *no difference*. 
+- **Example**: There is *no difference* in the flight times from NY to BOS or SFO. 
+
+---
+
+# Assessing Strength of Evidence
+
+First, we *assume that the null hypothesis is true*. 
+- Then, we determine *how unlikely* it would be to observe **sample statistics** as extreme (or more extreme) than the ones in the original sample. 
+
+--
+
+**Don't worry!** This might not sound immediately straightforward. 
+- Seasoned scientists often misunderstand statistical hypothesis tests. 
+
+--
+
+**Criminal trial analogy**: *Innocent until proven guilty*
+
+---
+
+# Two Possible Conclusions
+
+These are the *only two* possible conclusions to a statistical hypothesis test:
+
+- **Reject** the null hypothesis $H_{0}$ $\rightarrow$ **Accept** the alternative hypothesis $H_{a}$ 
+- **Fail to reject** the null hypothesis $H_{0}$
+
+Therefore, *never* write "Accept $H_{0}$" when you mean "Fail to reject $H_{0}$!"
+
+---
+
+# Types of Errors
+
+Hypothesis tests *are not perfect*. Unfortunately, there exists the possibility of your conclusion being *incorrect*. 
+
+--
+
+Similar to a criminal trial:
+- an *innocent* person is wrongly convicted (found guilty), or
+- a *guilty* person is wrongly set free (found not guilty)
+
+---
+
+# Types of Errors
+
+Let's assume the following: 
+$$H_{0}: \text{person is innocent},\ H_{a}: \text{person is guilty}$$
+
+The two **errors** are:
+- Reject $H_{0}$ when $H_{0}$ is true (**Type I Error**)
+- Fail to reject $H_{0}$ when $H_{0}$ is false (**Type II Error**)
+
+--
+
+When you use a *sample* to make inferences about a *population*, there is a chance that your inferences are incorrect!
+- With any procedure, there is a chance of Type I Error and a chance of Type II Error. 
+
+---
+
+# Type I and Type II Errors
+
+.center[
+```{r, echo = FALSE, out.width = "80%"}
+knitr::include_graphics("decision_table.png")
+```
+]
+
+Of course, we want a *small probability* of making an error!
+
+--
+
+- The probability of Type I Error is denoted by $\alpha$ ("alpha") and is called the **significance level** of the hypothesis test. 
+- The probability of Type II Error is denoted by $\beta$ ("beta").
+
+---
+
+# Significance Level
+
+We want $\alpha$ and $\beta$ as close to 0 as possible, because this would minimize our chance of making an error in our hypothesis test conclusions. 
+
+Usually, we set $\alpha$ (the **significance level**) before the hypothesis test is conducted. 
+- We then judge the "evidence" against $\alpha$. 
+
+--
+
+Common values of $\alpha$ are $0.05$, $0.01$, and $0.10$. 
+- If we set $\alpha=0.05$, this means that we are using a procedure that, when used *over and over with different samples*, rejects a TRUE $H_{0}$ 5% of the time. 
+
+---
+
+# Statistical Significance
+
+The results from a hypothesis test are **statistically significant** if they are *more extreme* than what we would expect to see by random chance, **if the null hypothesis were true**. 
+- In other words, we have *convincing evidence* in favor of the alternative hypothesis, allowing us to generalize our *sample* results to the claim about the *population*. 
+
+--
+
+**Example**: Back to Sarah the chimp...
+
+---
+
+# Sarah the chimp
+
+.pull-left[
+- In 1978, researchers Premack and Woodruff published a study in *Science* magazine, reporting an experiment where an adult chimpanzee named Sarah was shown videotapes of eight different scenarios of a human being faced with a problem.
+
+- After each videotape showing, she was presented with two photographs, one of which depicted a possible solution to the problem.
+
+- Sarah could pick the photograph with the correct solution for seven of the eight problems!
+]
+
+.pull-right[
+![](chimp.jpeg)
+]
+
+---
+
+# How?!
+
+What are **two possible explanations** for Sarah getting 7 correct answers out of 8?
+
+--
+
+1. Sarah was just guessing and got lucky. 
+
+2. Sarah can do better than just guessing. 
+
+--
+
+Explanation 1 is the **null hypothesis**. Is there enough evidence to reject the explanation that Sarah was *guessing*?
+
+---
+
+# Simulating Guessing
+
+If Sarah were just guessing, we would *expect* the number of correct guesses to be 4. 
+
+- However, not every set of 8 coin tosses will result in 4 heads. 
+
+- Let's repeat the set of 8 coin tosses many times, to generate the pattern for correct answers that could happen in the long run, **under the assumption that Sarah is just guessing**. 
+
+--
+.center[
+```{r, echo = F, message = F, warning = F, out.width = "45%"}
+obs.data <- c(rep("correct", 7), rep("incorrect", 1)) %>%
+  as_data_frame() %>%
+  rename(guess = value)
+
+obs.data %>%
+  specify(response = guess, success = "correct") %>% 
+  hypothesize(null = "point", p = 0.5) %>% 
+  generate(reps = 1000) %>% 
+  calculate(stat = "prop") %>%
+  visualize(obs_stat = 7/8, direction = "right") +
+  labs(x = "Proportion of correct answers", y = "Count") +
+  ggtitle("")
+```
+]

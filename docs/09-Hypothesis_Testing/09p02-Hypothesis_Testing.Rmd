@@ -1,0 +1,321 @@
+---
+title: "CEMA 0907: Statistics in the Real World"
+subtitle: "Conducting Hypothesis Tests (PART 1)"
+author: "Anthony Scotina"
+date: 
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    css: my-theme.css
+    nature:
+      highlightLines: true
+      countIncrementalSlides: false
+---
+
+```{r xaringan-themer, include = FALSE}
+library(xaringanthemer)
+mono_accent(base_color = "#43418A")
+```
+
+```{r, include = FALSE}
+library(tidyverse)
+library(infer)
+library(nycflights13)
+library(ggplot2movies)
+library(broom)
+```
+
+# Needed Packages 
+
+```{r}
+library(tidyverse)
+library(infer)
+library(nycflights13)
+```
+
+---
+
+class: center, middle
+
+# Hypothesis Testing in R
+
+---
+
+# `infer`
+
+.center[
+```{r, echo = FALSE}
+knitr::include_graphics("infer.png")
+```
+]
+
+---
+
+# `hypothesize()`
+
+You have seen most of these `infer` package functions when we constructed **confidence intervals**. 
+- Confidence intervals are *closely related* to hypothesis tests!
+
+The only new verb-named fucntion here is `hypothesize()`:
+- Its main argument is `null`, which is either:
+    - `point` for hypotheses involving a *single sample*
+    - `independence` for hypotheses involving a *comparison between groups*
+    
+---
+
+# Comparing Two Means
+
+First we will build hypotheses which look at the **difference between two population means**. 
+
+Recall that $\mu$ ("mu") denotes a single population mean. 
+- When we have *two groups*... 
+    - Let $\mu_{1}$ be the population mean of group 1. 
+    - Let $\mu_{2}$ be the population mean of group 2. 
+    
+--
+
+**Two competing hypotheses**
+
+$H_{0}$: $\mu_{1}=\mu_{2}$ (The population means are equivalent between groups.)
+
+$H_{a}$: $\mu_{1}\neq \mu_{2}$ (or $<$, $>$ depending on the context)
+
+---
+
+# Action vs. Romance Movies
+
+The `movies_sample` dataset contains a sample of 200 *action* and *romance* movies, along with their title, year of release, and IMDB.com rating. 
+
+```{r, echo = FALSE, message = FALSE}
+movies_sample = readr::read_csv("movies_sample.csv")
+```
+
+```{r, comment = ""}
+movies_sample
+```
+
+---
+
+# Action vs. Romance Movies
+
+**Question**: Is there a *significant difference* in the **average movie ratings** of Action vs. Romance movies on IMDB.com?
+
+--
+
+Let $\mu_{a}$ denote the *population mean* rating of Action movies, and let $\mu_{r}$ denote the *population mean* rating of Romance movies. 
+- $H_{0}$: $\mu_{a}=\mu_{r}$
+- $H_{a}$: $\mu_{a}\neq \mu_{r}$
+
+---
+
+# Exploratory Data Analysis: Data Visualization
+
+```{r, out.width = "45%"}
+ggplot(data = movies_sample, mapping = aes(x = genre, y = rating)) + 
+  geom_boxplot()
+```
+
+---
+
+# Exploratory Data Analysis: Summary Statistics
+
+Unlike the comparison in flight times between BOS and SFO destinations, it is unclear if the *average* movie rating is **significantly different** between Action and Romance movies. 
+
+Let's calculate **summary statistics** *by group* to gather more detail:
+```{r, comment = ""}
+summary_stats = movies_sample %>%
+  group_by(genre) %>%
+  summarize(mean = mean(rating), sd = sd(rating))
+summary_stats
+```
+
+---
+
+# Exploratory Data Analysis: Summary Statistics
+
+```{r, echo = FALSE, eval = TRUE, comment = ""}
+summary_stats = movies_sample %>%
+  group_by(genre) %>%
+  summarize(mean = mean(rating), sd = sd(rating))
+summary_stats
+```
+
+Since we are interested in inference about the **difference between means**, our *sample statistic* will be the **difference between sample means**. 
+- $\bar{x}_{r}=6.19$ and $\bar{x}_{a}=5.04$, so $\bar{x}_{r}-\bar{x}_{a}=1.15$.
+
+---
+
+# Observed Effect
+
+Another way of writing the sample statistic in hypothesis testing is to call it the **observed effect**, $\delta^{*}$ ("delta star"). 
+
+There is a more convenient way of calculating this in R, using the `infer` package:
+```{r, comment = ""}
+obs_diff = movies_sample %>% 
+  specify(formula = rating ~ genre) %>% #<<
+  calculate(stat = "diff in means", order = c("Romance", "Action"))
+obs_diff
+```
+
+- Recall the `specify()` and `calculate()` functions from earlier. 
+
+---
+
+# Simulating the Null Hypothesis
+
+Now that we calculated the **sample statistic** (or the *observed effect*), the next step in a statistical hypothesis test is to simulate a world where the **null hypothesis is true**. 
+- $H_{0}$: $\mu_{a}=\mu_{r}$, or $\mu_{r}-\mu_{a}=0$
+
+We can *simulate* this using `generate()`. 
+
+---
+
+# Simulating the Null Hypothesis
+
+If we *assume* that the population mean rating is **equal** between Action and Romance movies, then assuming $H_{0}$ true is equivalent to taking all 200 ratings and *randomly re-shuffling* (**randomizing**) them into the Action and Romance groups. 
+- If $H_{0}$ is true, then there is no association between `genre` and `rating`, so each rating is *equally likely* to appear in either group. 
+
+--
+
+This is the framework that `generate()` follows.
+
+```{r, echo = FALSE}
+set.seed(12)
+```
+
+```{r, comment = "", message = FALSE}
+movies_sample %>% 
+  specify(formula = rating ~ genre) %>%
+  hypothesize(null = "independence") %>% 
+  generate(reps = 1) %>% 
+  calculate(stat = "diff in means", order = c("Romance", "Action"))
+```
+
+---
+
+# Simulating the Null Hypothesis
+
+```{r, echo = FALSE}
+set.seed(12)
+```
+
+```{r, comment = "", message = FALSE, warning = FALSE}
+movies_sample %>% 
+  specify(formula = rating ~ genre) %>% #<<
+  hypothesize(null = "independence") %>% #<<
+  generate(reps = 1) %>% 
+  calculate(stat = "diff in means", order = c("Romance", "Action"))
+```
+
+- `generate(reps = 1)` completes a single **permutation** of sending values of `ratings` to potentially different values of `genre` from which they originally came. 
+
+--
+
+- Similar to **bootstrapping**, we can repeat this process 5,000 times, to simulate a world where the **null hypothesis** is true. 
+
+---
+
+# Distribution Under the Null Hypothesis
+
+```{r, message = FALSE, warning = FALSE}
+generated_samples = movies_sample %>% 
+  specify(formula = rating ~ genre) %>% 
+  hypothesize(null = "independence") %>% 
+  generate(reps = 5000) %>%
+  calculate(stat = "diff in means", order = c("Romance", "Action"))
+```
+
+This creates a *distribution* of 5,000 **simulated** differences in sample means, called the **null distribution**.
+- The **null distribution** is similar to the **bootstrap distribution** since we are just resampling from our original sample. 
+- The difference here is that we are *assuming the null hypothesis is true*. 
+
+---
+
+# The Null Distribution
+
+```{r, out.width = "50%", message = FALSE, warning = FALSE}
+generated_samples %>%
+  visualize()
+```
+
+---
+
+# The Null Distribution
+
+```{r, out.width = "50%", message = FALSE, warning = FALSE}
+generated_samples %>%
+  visualize(obs_stat = 1.15)
+```
+
+---
+
+# Quantifying the Strength of Evidence
+
+We are interested in seeing if our *observed* sample difference in mean movie rating between Action and Romance of 1.15 is *greater than what would be expected from random chance*. 
+- What are the chances of observing a sample average difference in means of 1.15, *in a world where the population averages between genres are equal*?
+
+How can we **quantify** these chances?
+- If these chances where *small*, we could **reject the null hypothesis**. 
+
+
+---
+
+# The p-value
+
+the **p-value** is the probability of observing a **sample statistic** as extreme (or more extreme) than the one in the original sample, *assuming the null hypothesis is true*. 
+
+--
+
+```{r, out.width = "40%", message = FALSE, warning = FALSE}
+generated_samples %>%
+  visualize(obs_stat = 1.15, direction = "both")
+```
+
+---
+
+# The p-value
+
+.pull-left[
+```{r, echo = FALSE, eval = TRUE, message = FALSE, warning = FALSE}
+generated_samples %>%
+  visualize(obs_stat = 1.15, direction = "both")
+```
+]
+
+.pull-right[
+Our *observed* **sample difference in means** was 1.15: On average, Romance movies had a IMDB.com rating that was 1.15 higher than Action movies. 
+- We mark this with a *red line*, and shade red all values at or above that value...
+    - and also shaded red those values at or below its negative value. 
+]
+
+---
+
+# The p-value
+
+.pull-left[
+```{r, echo = FALSE, eval = TRUE, message = FALSE, warning = FALSE}
+generated_samples %>%
+  visualize(obs_stat = 1.15, direction = "both")
+```
+]
+
+.pull-right[
+You can probably guess what the p-value will be for this example. 
+- The red shading does not intersect the histogram at all!
+]
+
+---
+
+# Calculating the p-value
+
+```{r, comment = ""}
+pvalue = generated_samples %>% 
+  get_pvalue(obs_stat = 1.15, direction = "both")
+pvalue
+```
+
+--
+
+Assuming a 5% **level of significance**, we have evidence supporting the conclusion that the mean rating for romance movies is different from that of action movies.
+- p-value $<0.05$
+- In other words, we **reject the null hypothesis** and **conclude the alternative hypothesis**. 
