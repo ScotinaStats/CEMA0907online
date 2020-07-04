@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="" xml:lang="">
   <head>
-    <title>CEMA 0907: Statistics in the Real World</title>
+    <title>CEMA 0928: Statistics in the Real World</title>
     <meta charset="utf-8" />
     <meta name="author" content="Anthony Scotina" />
     <link rel="stylesheet" href="my-theme.css" type="text/css" />
@@ -10,7 +10,7 @@
     <textarea id="source">
 class: center, middle, inverse, title-slide
 
-# CEMA 0907: Statistics in the Real World
+# CEMA 0928: Statistics in the Real World
 ## Multiple Regression (PART 2)
 ### Anthony Scotina
 
@@ -142,6 +142,11 @@ For *non-waterfront homes*: `$$\widehat{price}=99306+\underline{128265}(bedrooms
 
 # Comparing the Models
 
+
+```
+## `geom_smooth()` using formula 'y ~ x'
+```
+
 &lt;img src="06p02-Multiple_Regression_files/figure-html/unnamed-chunk-6-1.png" width="50%" /&gt;&lt;img src="06p02-Multiple_Regression_files/figure-html/unnamed-chunk-6-2.png" width="50%" /&gt;
 
 So... why would we *ever* use a **parallel slopes model**?
@@ -253,6 +258,10 @@ ggplot(data = house_prices, aes(x = sqft_living, y = price)) +
   labs(x = "Square Footage of Home", y = "Price (in $)")
 ```
 
+```
+## `geom_smooth()` using formula 'y ~ x'
+```
+
 ![](06p02-Multiple_Regression_files/figure-html/unnamed-chunk-10-1.png)&lt;!-- --&gt;
 ]
 
@@ -263,6 +272,10 @@ ggplot(data = house_prices, aes(x = bedrooms, y = sqft_living)) +
   geom_point() + 
   geom_smooth(method = "lm", se = FALSE) + 
   labs(x = "Number of Bedrooms", y = "Square Footage of Home")
+```
+
+```
+## `geom_smooth()` using formula 'y ~ x'
 ```
 
 ![](06p02-Multiple_Regression_files/figure-html/unnamed-chunk-11-1.png)&lt;!-- --&gt;
@@ -408,6 +421,32 @@ if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
     deleted = true;
   });
 })();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
 // adds .remark-code-has-line-highlighted class to <pre> parent elements
 // of code chunks containing highlighted lines with class .remark-code-line-highlighted
 (function(d) {
@@ -425,17 +464,6 @@ if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
   }
   preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
 })(document);</script>
-
-<script>
-(function() {
-  var links = document.getElementsByTagName('a');
-  for (var i = 0; i < links.length; i++) {
-    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
-      links[i].target = '_blank';
-    }
-  }
-})();
-</script>
 
 <script>
 slideshow._releaseMath = function(el) {

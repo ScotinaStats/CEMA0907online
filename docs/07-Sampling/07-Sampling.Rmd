@@ -1,5 +1,5 @@
 ---
-title: "CEMA 0907: Statistics in the Real World"
+title: "CEMA 0928: Statistics in the Real World"
 subtitle: "Sampling"
 author: "Anthony Scotina"
 date: 

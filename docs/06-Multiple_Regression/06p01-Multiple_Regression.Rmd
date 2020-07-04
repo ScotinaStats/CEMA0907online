@@ -1,5 +1,5 @@
 ---
-title: "CEMA 0907: Statistics in the Real World"
+title: "CEMA 0928: Statistics in the Real World"
 subtitle: "Multiple Regression (PART 1)"
 author: "Anthony Scotina"
 date: 
@@ -11,6 +11,10 @@ output:
       countIncrementalSlides: false
       highlightLines: true
 ---
+
+<!--
+pagedown::chrome_print("~/Dropbox/Teaching/02-Brown Courses/CEMA0928-Statistics in the Real World [ONLINE]/Content/06-Multiple_Regression/06p03-Multiple_Regression.html")
+-->
 
 ```{r xaringan-themer, include = FALSE}
 library(xaringanthemer)
