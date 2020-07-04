@@ -1,5 +1,5 @@
 ---
-title: "CEMA 0907: Statistics in the Real World"
+title: "CEMA 0928: Statistics in the Real World"
 subtitle: "Bootstrapping"
 author: "Anthony Scotina"
 date: 
@@ -10,6 +10,10 @@ output:
     nature:
       highlightLines: true
 ---
+
+<!--
+pagedown::chrome_print("~/Dropbox/Teaching/02-Brown Courses/CEMA0928-Statistics in the Real World [ONLINE]/Content/08-Confidence_Intervals/08p04-Confidence_Intervals.html")
+-->
 
 ```{r xaringan-themer, include = FALSE}
 library(xaringanthemer)
