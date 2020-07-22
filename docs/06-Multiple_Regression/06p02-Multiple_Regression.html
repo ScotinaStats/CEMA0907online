@@ -31,6 +31,23 @@ library(moderndive)
 
 ---
 
+# Taking care of the outlier...
+
+It is reasonable to suspect that the **outlier** with 33 bedrooms is *not representative* of the population in the same way that the rest of the sample is. 
+
+- Let's remove the outlier to see if `bedrooms` and `price` are more *linearly related*:
+
+
+```r
+outlier_index = which(house_prices$bedrooms == 33) #15871
+house_prices = 
+  house_prices[-outlier_index, ]
+```
+
+- This removes the 15,871st row, which contains the outlier, from the data. 
+
+---
+
 class: center, middle
 
 # Parallel Slopes Model
@@ -59,7 +76,7 @@ gg_parallel_slopes(y = "price", num_x = "bedrooms",
                    cat_x = "waterfront", data = house_prices)
 ```
 
-&lt;img src="06p02-Multiple_Regression_files/figure-html/unnamed-chunk-3-1.png" width="35%" /&gt;
+&lt;img src="06p02-Multiple_Regression_files/figure-html/unnamed-chunk-4-1.png" width="35%" /&gt;
 
 - **Note**: The *parallel regression lines* are not necessarily the **lines of best fit**, which is why `xyplot()` can't really help us here!
 
@@ -68,7 +85,7 @@ gg_parallel_slopes(y = "price", num_x = "bedrooms",
 # Parallel Slopes Model
 
 .pull-left[
-![](06p02-Multiple_Regression_files/figure-html/unnamed-chunk-4-1.png)&lt;!-- --&gt;
+![](06p02-Multiple_Regression_files/figure-html/unnamed-chunk-5-1.png)&lt;!-- --&gt;
 ]
 
 .pull-right[
@@ -94,9 +111,9 @@ get_regression_table(lm_price_parallel)
 ## # A tibble: 3 x 7
 ##   term           estimate std_error statistic p_value lower_ci upper_ci
 ##   &lt;chr&gt;             &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
-## 1 intercept       118862.     8573.      13.9       0  102058.  135665.
-## 2 bedrooms        122414.     2451.      50.0       0  117610.  127217.
-## 3 waterfrontTRUE 1138975.    26344.      43.2       0 1087338. 1190611.
+## 1 intercept        99306.     8740.      11.4       0   82174.  116437.
+## 2 bedrooms        128265.     2504.      51.2       0  123358.  133172.
+## 3 waterfrontTRUE 1139217.    26274.      43.4       0 1087717. 1190716.
 ```
 
 The equation for the linear model is: `$$\widehat{price}=99306+128265(bedrooms)+1139217(waterfrontTRUE)$$`
@@ -147,7 +164,7 @@ For *non-waterfront homes*: `$$\widehat{price}=99306+\underline{128265}(bedrooms
 ## `geom_smooth()` using formula 'y ~ x'
 ```
 
-&lt;img src="06p02-Multiple_Regression_files/figure-html/unnamed-chunk-6-1.png" width="50%" /&gt;&lt;img src="06p02-Multiple_Regression_files/figure-html/unnamed-chunk-6-2.png" width="50%" /&gt;
+&lt;img src="06p02-Multiple_Regression_files/figure-html/unnamed-chunk-7-1.png" width="50%" /&gt;&lt;img src="06p02-Multiple_Regression_files/figure-html/unnamed-chunk-7-2.png" width="50%" /&gt;
 
 So... why would we *ever* use a **parallel slopes model**?
 - The lines in the left-hand plot don't look parallel, so why force them to be?
@@ -211,9 +228,9 @@ house_prices %&gt;%
 
 ```
 ##                 price  bedrooms sqft_living
-## price       1.0000000 0.3083496   0.7020351
-## bedrooms    0.3083496 1.0000000   0.5766707
-## sqft_living 0.7020351 0.5766707   1.0000000
+## price       1.0000000 0.3154449   0.7020466
+## bedrooms    0.3154449 1.0000000   0.5914672
+## sqft_living 0.7020466 0.5914672   1.0000000
 ```
 
 ---
@@ -229,9 +246,9 @@ house_prices %&gt;%
 
 ```
 ##                 price  bedrooms sqft_living
-## price       1.0000000 0.3083496   0.7020351
-## bedrooms    0.3083496 1.0000000   0.5766707
-## sqft_living 0.7020351 0.5766707   1.0000000
+## price       1.0000000 0.3154449   0.7020466
+## bedrooms    0.3154449 1.0000000   0.5914672
+## sqft_living 0.7020466 0.5914672   1.0000000
 ```
 
 - `\(r(price,bedrooms)=0.32\)`. 
@@ -262,7 +279,7 @@ ggplot(data = house_prices, aes(x = sqft_living, y = price)) +
 ## `geom_smooth()` using formula 'y ~ x'
 ```
 
-![](06p02-Multiple_Regression_files/figure-html/unnamed-chunk-10-1.png)&lt;!-- --&gt;
+![](06p02-Multiple_Regression_files/figure-html/unnamed-chunk-11-1.png)&lt;!-- --&gt;
 ]
 
 .pull-right[
@@ -278,7 +295,7 @@ ggplot(data = house_prices, aes(x = bedrooms, y = sqft_living)) +
 ## `geom_smooth()` using formula 'y ~ x'
 ```
 
-![](06p02-Multiple_Regression_files/figure-html/unnamed-chunk-11-1.png)&lt;!-- --&gt;
+![](06p02-Multiple_Regression_files/figure-html/unnamed-chunk-12-1.png)&lt;!-- --&gt;
 ]
 
 ---
@@ -297,9 +314,9 @@ get_regression_table(lm_multiple)
 ## # A tibble: 3 x 7
 ##   term        estimate std_error statistic p_value lower_ci upper_ci
 ##   &lt;chr&gt;          &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
-## 1 intercept     79469.   6605.        12.0       0   66524.   92415.
-## 2 bedrooms     -57067.   2308.       -24.7       0  -61591.  -52542.
-## 3 sqft_living     314.      2.34     134.        0     309.     319.
+## 1 intercept     90034.   6733.        13.4       0   76836.  103231.
+## 2 bedrooms     -62062.   2392.       -25.9       0  -66751.  -57372.
+## 3 sqft_living     317.      2.37     134.        0     312.     322.
 ```
 
 The equation of the *regression plane* is: `$$\widehat{price}=90034-62062(bedrooms)+317(sqft.living)$$`
@@ -337,8 +354,8 @@ get_regression_table(lm_simple)
 ## # A tibble: 2 x 7
 ##   term      estimate std_error statistic p_value lower_ci upper_ci
 ##   &lt;chr&gt;        &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
-## 1 intercept  129802.     8932.      14.5       0  112295.  147309.
-## 2 bedrooms   121716.     2554.      47.7       0  116710.  126723.
+## 1 intercept  110316.     9108.      12.1       0   92462.  128169.
+## 2 bedrooms   127548.     2610.      48.9       0  122432.  132664.
 ```
 
 ```r
@@ -350,9 +367,9 @@ get_regression_table(lm_multiple)
 ## # A tibble: 3 x 7
 ##   term        estimate std_error statistic p_value lower_ci upper_ci
 ##   &lt;chr&gt;          &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
-## 1 intercept     79469.   6605.        12.0       0   66524.   92415.
-## 2 bedrooms     -57067.   2308.       -24.7       0  -61591.  -52542.
-## 3 sqft_living     314.      2.34     134.        0     309.     319.
+## 1 intercept     90034.   6733.        13.4       0   76836.  103231.
+## 2 bedrooms     -62062.   2392.       -25.9       0  -66751.  -57372.
+## 3 sqft_living     317.      2.37     134.        0     312.     322.
 ```
 
 ---

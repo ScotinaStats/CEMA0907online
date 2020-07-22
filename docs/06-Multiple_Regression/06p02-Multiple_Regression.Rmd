@@ -31,6 +31,22 @@ library(moderndive)
 
 ---
 
+# Taking care of the outlier...
+
+It is reasonable to suspect that the **outlier** with 33 bedrooms is *not representative* of the population in the same way that the rest of the sample is. 
+
+- Let's remove the outlier to see if `bedrooms` and `price` are more *linearly related*:
+
+```{r}
+outlier_index = which(house_prices$bedrooms == 33) #15871
+house_prices = 
+  house_prices[-outlier_index, ]
+```
+
+- This removes the 15,871st row, which contains the outlier, from the data. 
+
+---
+
 class: center, middle
 
 # Parallel Slopes Model

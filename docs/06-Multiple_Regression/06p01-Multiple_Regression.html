@@ -17,6 +17,10 @@ class: center, middle, inverse, title-slide
 ---
 
 
+&lt;!--
+pagedown::chrome_print("~/Dropbox/Teaching/02-Brown Courses/CEMA0928-Statistics in the Real World [ONLINE]/Content/06-Multiple_Regression/06p03-Multiple_Regression.html")
+--&gt;
+
 
 
 
@@ -31,6 +35,23 @@ library(moderndive)
 
 ---
 
+# Taking care of the outlier...
+
+It is reasonable to suspect that the **outlier** with 33 bedrooms is *not representative* of the population in the same way that the rest of the sample is. 
+
+- Let's remove the outlier to see if `bedrooms` and `price` are more *linearly related*:
+
+
+```r
+outlier_index = which(house_prices$bedrooms == 33) #15871
+house_prices = 
+  house_prices[-outlier_index, ]
+```
+
+- This removes the 15,871st row, which contains the outlier, from the data. 
+
+---
+
 # Multiple Regression
 
 **Does bedrooms per house give us the full story?**
@@ -40,7 +61,7 @@ library(moderndive)
 ## `geom_smooth()` using formula 'y ~ x'
 ```
 
-&lt;img src="06p01-Multiple_Regression_files/figure-html/unnamed-chunk-3-1.png" width="50%" /&gt;
+&lt;img src="06p01-Multiple_Regression_files/figure-html/unnamed-chunk-4-1.png" width="50%" /&gt;
 
 ---
 
@@ -55,7 +76,7 @@ library(moderndive)
 ## `geom_smooth()` using formula 'y ~ x'
 ```
 
-&lt;img src="06p01-Multiple_Regression_files/figure-html/unnamed-chunk-4-1.png" width="50%" /&gt;
+&lt;img src="06p01-Multiple_Regression_files/figure-html/unnamed-chunk-5-1.png" width="50%" /&gt;
 
 ---
 
@@ -122,7 +143,7 @@ ggplot(data = house_prices, aes(x = bedrooms, y = price, color = waterfront)) +
 ## `geom_smooth()` using formula 'y ~ x'
 ```
 
-&lt;img src="06p01-Multiple_Regression_files/figure-html/unnamed-chunk-5-1.png" width="50%" /&gt;
+&lt;img src="06p01-Multiple_Regression_files/figure-html/unnamed-chunk-6-1.png" width="50%" /&gt;
 
 ---
 
@@ -134,7 +155,7 @@ ggplot(data = house_prices, aes(x = bedrooms, y = price, color = waterfront)) +
 ## `geom_smooth()` using formula 'y ~ x'
 ```
 
-![](06p01-Multiple_Regression_files/figure-html/unnamed-chunk-6-1.png)&lt;!-- --&gt;
+![](06p01-Multiple_Regression_files/figure-html/unnamed-chunk-7-1.png)&lt;!-- --&gt;
 ]
 
 .pull-right[
@@ -165,10 +186,10 @@ get_regression_table(lm_price_interaction)
 ## # A tibble: 4 x 7
 ##   term                    estimate std_error statistic p_value lower_ci upper_ci
 ##   &lt;chr&gt;                      &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
-## 1 intercept                133202.     8554.     15.6    0      116435.  149969.
-## 2 bedrooms                 118160.     2446.     48.3    0      113365.  122955.
-## 3 waterfrontTRUE          -255355.    84617.     -3.02   0.003 -421211.  -89499.
-## 4 bedrooms:waterfrontTRUE  422354.    24375.     17.3    0      374577.  470132.
+## 1 intercept                114143.     8725.     13.1    0       97042.  131245.
+## 2 bedrooms                 123862.     2500.     49.5    0      118962.  128763.
+## 3 waterfrontTRUE          -236296.    84425.     -2.80   0.005 -401775.  -70817.
+## 4 bedrooms:waterfrontTRUE  416652.    24320.     17.1    0      368982.  464322.
 ```
 
 In this **interaction model**, the model formula was not only of the form `y ~ x1 + x2`, but it included an **interaction term**, `x1*x2`. 
@@ -190,31 +211,31 @@ In this **interaction model**, the model formula was not only of the form `y ~ x
 &lt;tbody&gt;
   &lt;tr&gt;
    &lt;td style="text-align:left;"&gt; intercept &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 133202.1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 8554.279 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 116435.1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 149969.14 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 114143.5 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 8724.783 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 97042.24 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 131244.68 &lt;/td&gt;
   &lt;/tr&gt;
   &lt;tr&gt;
    &lt;td style="text-align:left;"&gt; bedrooms &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 118159.9 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2446.187 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 113365.2 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 122954.64 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 123862.3 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2500.081 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 118961.92 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 128762.61 &lt;/td&gt;
   &lt;/tr&gt;
   &lt;tr&gt;
    &lt;td style="text-align:left;"&gt; waterfrontTRUE &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -255354.7 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 84617.192 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -421210.6 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -89498.76 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -236296.0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 84424.858 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -401774.98 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -70817.08 &lt;/td&gt;
   &lt;/tr&gt;
   &lt;tr&gt;
    &lt;td style="text-align:left;"&gt; bedrooms:waterfrontTRUE &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 422354.3 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 24375.247 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 374577.0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 470131.59 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 416652.0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 24320.288 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 368982.41 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 464321.53 &lt;/td&gt;
   &lt;/tr&gt;
 &lt;/tbody&gt;
 &lt;/table&gt;
@@ -243,31 +264,31 @@ What about the slope and intercept for *waterfront homes*?
 &lt;tbody&gt;
   &lt;tr&gt;
    &lt;td style="text-align:left;"&gt; intercept &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 133202.1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 8554.279 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 116435.1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 149969.14 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 114143.5 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 8724.783 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 97042.24 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 131244.68 &lt;/td&gt;
   &lt;/tr&gt;
   &lt;tr&gt;
    &lt;td style="text-align:left;"&gt; bedrooms &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 118159.9 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2446.187 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 113365.2 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 122954.64 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 123862.3 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2500.081 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 118961.92 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 128762.61 &lt;/td&gt;
   &lt;/tr&gt;
   &lt;tr&gt;
    &lt;td style="text-align:left;"&gt; waterfrontTRUE &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -255354.7 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 84617.192 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -421210.6 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -89498.76 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -236296.0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 84424.858 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -401774.98 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -70817.08 &lt;/td&gt;
   &lt;/tr&gt;
   &lt;tr&gt;
    &lt;td style="text-align:left;"&gt; bedrooms:waterfrontTRUE &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 422354.3 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 24375.247 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 374577.0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 470131.59 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 416652.0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 24320.288 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 368982.41 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 464321.53 &lt;/td&gt;
   &lt;/tr&gt;
 &lt;/tbody&gt;
 &lt;/table&gt;
@@ -336,7 +357,7 @@ Because there are *two levels* of the categorical explanatory variable (`TRUE` a
 ## `geom_smooth()` using formula 'y ~ x'
 ```
 
-![](06p01-Multiple_Regression_files/figure-html/unnamed-chunk-10-1.png)&lt;!-- --&gt;
+![](06p01-Multiple_Regression_files/figure-html/unnamed-chunk-11-1.png)&lt;!-- --&gt;
 ]
 
 .pull-right[
