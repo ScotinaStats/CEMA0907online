@@ -1,17 +1,18 @@
 <!DOCTYPE html>
 <html lang="" xml:lang="">
   <head>
-    <title>CEMA 0928: Statistics in the Real World</title>
+    <title>CEMA 0907: Statistics in the Real World</title>
     <meta charset="utf-8" />
     <meta name="author" content="Anthony Scotina" />
+    <script src="libs/header-attrs-2.6/header-attrs.js"></script>
     <link rel="stylesheet" href="my-theme.css" type="text/css" />
   </head>
   <body>
     <textarea id="source">
 class: center, middle, inverse, title-slide
 
-# CEMA 0928: Statistics in the Real World
-## Scatterplots/Linegraphs
+# CEMA 0907: Statistics in the Real World
+## The Five Named Graphs
 ### Anthony Scotina
 
 ---
@@ -21,6 +22,10 @@ class: center, middle, inverse, title-slide
 
 
 
+&lt;!--
+pagedown::chrome_print("~/Dropbox/Teaching/02-Brown Courses/CEMA0928-Statistics in the Real World [ONLINE]/Content/02-Data_Visualization/02p02-Data_Visualization.html")
+--&gt;
+
 # Needed Packages
 
 
@@ -28,6 +33,7 @@ class: center, middle, inverse, title-slide
 library(nycflights13)
 library(tidyverse) # Includes ggplot2
 library(mdsr)
+library(mosaic)
 ```
 
 **Install any packages that you haven't installed yet!** 
@@ -174,7 +180,502 @@ ggplot(diamonds, aes(x = carat, y = price, color = cut)) +
   geom_smooth(method = "lm", se = FALSE)
 ```
 
+```
+## `geom_smooth()` using formula 'y ~ x'
+```
+
 &lt;img src="02p02-Data_Visualization_files/figure-html/unnamed-chunk-11-1.png" width="45%" /&gt;
+
+---
+
+# 5NG#3: Histograms
+
+**Histograms** provide a visualization of the *distribution* of a single *numerical* variable. 
+
+- You need only specific an `x` *aesthetic* in a histogram. 
+
+- By default, the `y` variable is *count*. 
+
+--
+
+Suppose we are interested in the *distribution* of hourly temperature recordings in New York. 
+
+**Histograms** share the following information:
+
+- What is the smallest and largest temperatures, and how often are they observed?
+- What is the "center" temperature?
+- How are the temperatures spread out?
+- What are frequent and infrequent values?
+- Is there any skewness?
+
+---
+
+# Histograms
+
+Let's use the `weather` data frame in the `nycflights13` package:
+
+
+```r
+ggplot(data = weather, aes(x = temp)) + 
+  geom_histogram()
+```
+
+&lt;img src="02p02-Data_Visualization_files/figure-html/unnamed-chunk-12-1.png" width="45%" /&gt;
+
+---
+
+# Histograms
+
+Before we even discuss the histogram, **always** use `color = "white"` (or some other color) in `geom_histogram()`!!!
+
+
+```r
+ggplot(data = weather, aes(x = temp)) + 
+  geom_histogram(color = "white")
+```
+
+&lt;img src="02p02-Data_Visualization_files/figure-html/unnamed-chunk-13-1.png" width="40%" /&gt;
+
+---
+
+# Histograms
+
+.pull-left[
+![](02p02-Data_Visualization_files/figure-html/unnamed-chunk-14-1.png)&lt;!-- --&gt;
+]
+
+.pull-right[
+What do we notice about the histogram?
+
+- The **middle** temperatures are around 55-60 degrees Fahrenheit. 
+
+- The **range** is from ~10 degrees to ~100 degrees. 
+
+- There are **two prominent peaks** at ~30 degrees and ~70 degrees. 
+    - What do you think could account for these two peaks?
+    - (Side note: Facets by *month* would be useful here!)
+]
+
+---
+
+# Changing the color of histograms
+
+The `color` argument changes the *outline* of each bar in the histogram. 
+
+If you want to change the color of each *bar*, use the `fill` argument. 
+
+- Try running this!
+
+```r
+ggplot(data = weather, aes(x = temp)) + 
+  geom_histogram(color = "white", fill = "mediumpurple")
+```
+
+- R has **many colors**. See [this](http://www.stat.columbia.edu/~tzheng/files/Rcolor.pdf). 
+
+---
+
+# Changing the bin width of histograms
+
+Note that R usually yells at you when you plot a histogram
+
+```r
+ggplot(data = weather, aes(x = temp)) + 
+  geom_histogram(color = "white", fill = "mediumpurple")
+```
+
+```
+## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+```
+
+You can use the `binwidth` argument in `geom_histogram()` to specify the **width of the bins** in the histogram. 
+
+- In general, the bin width can change the appearance of a histogram *considerably*, and there usually isn't a single "best" choice. 
+
+--
+
+
+```r
+ggplot(data = weather, aes(x = temp)) + 
+  geom_histogram(color = "white", fill = "mediumpurple", binwidth = 10)
+```
+
+Here, each bin contains a ten-point range of temperatures. 
+
+---
+
+# Density Plots
+
+**Density Plots** are an alternate way to visualize the distribution of a single *numerical* variable. 
+
+- Rather than grouping observations into **bins**, a density plot is a single continuous curve over the entire set of observations. 
+
+- The *y*-axis is **density**, and the *area under the curve* totals to 1. 
+
+In `ggplot2`, we can create a density plot using `geom_density()`:
+
+
+```r
+ggplot(data = weather, aes(x = temp)) + 
+  geom_density()
+```
+
+---
+
+# Density Plots 
+
+
+```r
+ggplot(data = weather, aes(x = temp)) + 
+  geom_density()
+```
+
+&lt;img src="02p02-Data_Visualization_files/figure-html/unnamed-chunk-19-1.png" width="50%" /&gt;
+
+---
+
+# Ridgeline Plots (Density Plots by group)
+
+**Ridgeline plots** consist of multiple, overlapping density plots. These usually resemble a mountain range, hence the name. 
+
+- The `ggridges` package contains an additional **geom**, `geom_density_ridges()`, that allows us to create ridgeline plots. 
+
+--
+
+Using the `weather` data, let's create ridgeline plots that separate temperature by month:
+
+
+```r
+ggplot(data = weather, aes(x = temp, y = factor(month))) + 
+  geom_density_ridges()
+```
+
+--
+
+**Note**: `geom_density_ridges()` *requires* the *y* aesthetic to be categorical (i.e., a **factor**). 
+
+- Since the `month` variable is technically *numerical* here, we first convert it to a factor when adding it to the *y* aesthetic. 
+
+---
+
+# Practice
+
+Using the `CIACountries` dataset, create a **ridgeline plot** that separates `gdp` delay by `net_users`. 
+
+
+
+---
+
+# 5NG#4: Boxplots
+
+**Boxplots**, like **histograms** and **density plots**, show the *distribution* of a *numerical* variable. 
+
+- However, boxplots are constructed using information provided by a **five-number summary**. 
+
+**Five-number summary**: Minimum, 1st quartile (25th percentile), Median, 3rd quartile (75th percentile), Maximum
+
+--
+
+In R, a five-number summary of any numerical variable can be found using the `summary()` function:
+
+```r
+summary(mpg$hwy)
+```
+
+```
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##   12.00   18.00   24.00   23.44   27.00   44.00
+```
+
+(Recall that we can use the `$` operator to view individual variables in a data frame!)
+
+---
+
+# Boxplots
+
+&lt;img src="02p02-Data_Visualization_files/figure-html/unnamed-chunk-23-1.png" width="65%" /&gt;
+
+---
+
+# Boxplots
+
+&lt;img src="02p02-Data_Visualization_files/figure-html/unnamed-chunk-24-1.png" width="65%" /&gt;
+
+---
+
+# Boxplots
+
+**How can we make a boxplot?**
+
+Same as before, we just need to change the `geom_` object. 
+
+
+```r
+ggplot(data = mpg, aes(y = hwy)) + 
+  geom_boxplot()
+```
+
+(Notice we also use the `y` variable here, not the `x`!)
+
+---
+
+# Side-by-side Boxplots
+
+Boxplots are more interesting when you compare several side-by-side. 
+
+- Let's compare *highway miles per gallon* for different *types* of cars. 
+
+--
+
+
+```r
+ggplot(data = mpg, aes(x = class, y = hwy)) + 
+  geom_boxplot()
+```
+
+&lt;img src="02p02-Data_Visualization_files/figure-html/unnamed-chunk-26-1.png" width="40%" /&gt;
+
+---
+
+# Violin Plots
+
+**Violin plots** are a sort of *hybrid* of density plots and boxplots:
+
+
+```r
+ggplot(data = mpg, aes(x = class, y = hwy)) + 
+  geom_violin()
+```
+
+&lt;img src="02p02-Data_Visualization_files/figure-html/unnamed-chunk-27-1.png" width="45%" /&gt;
+
+---
+
+# Strip Plots
+
+**Strip plots** are a *stripped-down* version of boxplots.
+- Use `geom_jitter()` with a **categorical** *x*  and a **numerical** *y* aesthetic.
+
+
+```r
+ggplot(data = mpg, aes(x = class, y = hwy)) + 
+  geom_jitter()
+```
+
+&lt;img src="02p02-Data_Visualization_files/figure-html/unnamed-chunk-28-1.png" width="35%" /&gt;
+
+---
+
+# Note on Categorical x-axis
+
+When using **boxplots**, **violin plots**, or **strip plots**, the *x* and *y* aesthetics are identical. 
+
+- The *x* is **categorical**, and the *y* is **numerical**. 
+
+--
+
+But if you have *too many categories* in your *x* variable, the labels could get jumbled together in the plot. 
+
+- Use `coord_flip()` to fix this!
+
+
+```r
+ggplot(data = mpg, aes(x = class, y = hwy)) + 
+  geom_jitter() + 
+  coord_flip()
+```
+
+---
+
+# Practice
+
+Using the `diamonds` dataset from the `ggplot2` package, construct an appropriate display for **price** of diamonds. 
+
+- If you think `price` might vary along a *categorical variable* in the dataset (e.g., `cut`, `color`), include it in the plot!
+    - [Hint: *violin plots*, *side-by-side boxplots*, *strip plots* could be options if you include a categorical variable.]
+
+
+```r
+View(diamonds)
+?diamonds
+```
+
+**Note**: This is a larger dataset than those we've used so far (&gt; 50,000 rows), so run this code to take a sample of 1,000 diamonds if it otherwise takes a while to run. 
+
+
+```r
+diamonds = diamonds %&gt;%
+  sample_n(1000)
+```
+
+---
+
+# 5NG#5: Bar Plots
+
+**Bar Plots** provide a visualization of the distribution of a *categorical variable*. 
+
+- The x-axis shows *levels* of the categorical variable. 
+- The y-axis shows the *count* of observations within each level. 
+
+--
+
+To illustrate bar plots, we will use the `HELPrct` dataset, which contains data from a clinical trial for adult inpatients recruited from a detoxification unit. 
+- This dataset is loaded when you load the `mdsr` package. 
+
+
+```r
+View(HELPrct)
+```
+
+---
+
+# Bar Plots
+
+
+```r
+ggplot(data = HELPrct, aes(x = homeless)) + 
+  geom_bar() + 
+  labs(x = "") # Remove redundant x-axis label
+```
+
+&lt;img src="02p02-Data_Visualization_files/figure-html/unnamed-chunk-33-1.png" width="50%" /&gt;
+
+---
+
+# Stacked Bar Plots
+
+If we map a *second categorical variable* to the `fill` **aesthetic**, we can construct **stacked bar plots**. 
+
+
+```r
+ggplot(data = HELPrct, aes(x = homeless)) + 
+  geom_bar(aes(fill = substance)) + 
+  labs(x = "") # Remove redundant x-axis label
+```
+
+&lt;img src="02p02-Data_Visualization_files/figure-html/unnamed-chunk-34-1.png" width="40%" /&gt;
+
+---
+
+# Bar Plots (on proportion scale)
+
+Add `position = "fill"` to `geom_barplot()` to convert the *y*-axis to **proportion** *out of each sub-category*.
+
+
+```r
+ggplot(data = HELPrct, aes(x = homeless)) + 
+  geom_bar(aes(fill = substance), position = "fill") + 
+  labs(x = "", y = "Proportion") 
+```
+
+&lt;img src="02p02-Data_Visualization_files/figure-html/unnamed-chunk-35-1.png" width="40%" /&gt;
+
+---
+
+# Color 
+
+Because *I know* you were wondering...
+
+
+```r
+ggplot(data = HELPrct, aes(x = homeless)) + 
+  geom_bar(aes(fill = substance), position = "fill") + 
+  labs(x = "", y = "Proportion") +
+* scale_fill_manual(values = c("dodgerblue", "chartreuse", "hotpink"))
+```
+
+&lt;img src="02p02-Data_Visualization_files/figure-html/unnamed-chunk-36-1.png" width="40%" /&gt;
+
+---
+
+# Summary: Building plots in layers
+
+
+```r
+?mtcars
+```
+
+
+```r
+ggplot(data = mtcars, mapping = aes(x = wt, y = mpg)) 
+```
+
+&lt;img src="02p02-Data_Visualization_files/figure-html/unnamed-chunk-38-1.png" width="50%" /&gt;
+
+---
+
+# Summary: Building plots in layers
+
+
+```r
+ggplot(data = mtcars, mapping = aes(x = wt, y = mpg))  + 
+  geom_point()
+```
+
+&lt;img src="02p02-Data_Visualization_files/figure-html/unnamed-chunk-39-1.png" width="50%" /&gt;
+
+---
+
+# Summary: Building plots in layers
+
+
+```r
+ggplot(data = mtcars, mapping = aes(x = wt, y = mpg))  + 
+  geom_point(aes(color = factor(cyl)))
+```
+
+&lt;img src="02p02-Data_Visualization_files/figure-html/unnamed-chunk-40-1.png" width="50%" /&gt;
+
+---
+
+# Summary: Building plots in layers
+
+
+```r
+ggplot(data = mtcars, mapping = aes(x = wt, y = mpg))  + 
+  geom_point(aes(color = factor(cyl))) + 
+  geom_smooth()
+```
+
+&lt;img src="02p02-Data_Visualization_files/figure-html/unnamed-chunk-41-1.png" width="50%" /&gt;
+
+---
+
+# Summary: Building plots in layers
+
+
+```r
+ggplot(data = mtcars, mapping = aes(x = wt, y = mpg))  + 
+  geom_point(aes(color = factor(cyl))) + 
+  geom_smooth(se = FALSE, aes(color = factor(cyl)))
+```
+
+&lt;img src="02p02-Data_Visualization_files/figure-html/unnamed-chunk-42-1.png" width="50%" /&gt;
+
+---
+
+# Summary: Building plots in layers
+
+
+```r
+ggplot(data = mtcars, mapping = aes(x = wt, y = mpg))  + 
+  geom_point(aes(color = factor(cyl))) + 
+  geom_smooth(se = FALSE, aes(color = factor(cyl))) + 
+  labs(x="Weight (lb/1000)", y = "Miles/(US) gallon", color = "Cylinders") + 
+  theme_classic()
+```
+
+&lt;img src="02p02-Data_Visualization_files/figure-html/unnamed-chunk-43-1.png" width="45%" /&gt;
+
+---
+
+# Summary
+
+.center[
+&lt;img src="summary_5ng.png" width="70%" /&gt;
+]
+
+
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
@@ -221,6 +722,32 @@ if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
     deleted = true;
   });
 })();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
 // adds .remark-code-has-line-highlighted class to <pre> parent elements
 // of code chunks containing highlighted lines with class .remark-code-line-highlighted
 (function(d) {
@@ -238,17 +765,6 @@ if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
   }
   preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
 })(document);</script>
-
-<script>
-(function() {
-  var links = document.getElementsByTagName('a');
-  for (var i = 0; i < links.length; i++) {
-    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
-      links[i].target = '_blank';
-    }
-  }
-})();
-</script>
 
 <script>
 slideshow._releaseMath = function(el) {

@@ -1,6 +1,6 @@
 ---
-title: "CEMA 0928: Statistics in the Real World"
-subtitle: "The Grammar of Graphics"
+title: "CEMA 0907: Statistics in the Real World"
+subtitle: "Data Visualization with ggplot2"
 author: "Anthony Scotina"
 date: 
 output:
@@ -14,7 +14,7 @@ output:
 
 ```{r xaringan-themer, include = FALSE}
 library(xaringanthemer)
-mono_accent(base_color = "#43418A")
+mono_accent(base_color = "#4682B4") #3E8A83?
 ```
 
 ```{r, include = FALSE}
@@ -24,11 +24,18 @@ library(babynames)
 library(ggsci)
 library(nycflights13)
 library(ggthemes)
+library(patchwork)
 ```
 
 <!--
-pagedown::chrome_print("~/Dropbox/Teaching/02-Brown Courses/CEMA0907-Statistics in the Real World [ONLINE]/Content/02-Data_Visualization/02p01-Data_Visualization.html")
+pagedown::chrome_print("~/Dropbox/Teaching/03-Simmons Courses/STAT228-Introduction to Data Science/Lecture Slides/02-Data_Visualization/02-Data_Visualization.html")
 -->
+
+class: center, middle, frame
+
+# Taxonomy of Data Graphics
+
+---
 
 # The Data Science  Pipeline
 
@@ -88,7 +95,7 @@ movies <- movies %>%
 ```
 
 ```{r, echo = FALSE, message = FALSE}
-movies <- read_csv("~/Dropbox/Teaching/02-Brown Courses/CEMA0928-Statistics in the Real World [ONLINE]/Data/movies.csv")
+movies <- read_csv("~/Dropbox/Teaching/03-Simmons Courses/STAT228-Introduction to Data Science/Data/movies.csv")
 movies <- filter(movies, votes >= 30)
 set.seed(228)
 movies <- movies %>%
@@ -164,7 +171,7 @@ movies %>%
              color = "gray20", curvature = -0.3) +
   scale_y_continuous(limits = c(1, 10), expand = c(0.005, 0.005),
                      breaks = c(seq(1, 10, by = 1))) +
-  ggsci::scale_color_uchicago() +
+  scale_color_uchicago() +
   labs(x = NULL, y = "IMDb.com rating",
        caption = 'Data: IMDb.com') +
   theme_light(base_size = 15) +
@@ -326,7 +333,7 @@ The choice of coordinate system is **crucial**!
 **Three choices**
 
 - **Numerical**
-    - Examples: *continuous* (e.g., temperature), *discrete* (e.g., MATH 228 enrollment)
+    - Examples: *continuous* (e.g., temperature), *discrete* (e.g., STAT 228 enrollment)
     - Values could be *evenly spaced*, on a *logarithmic scale*, or represent *percentages*
 
 - **Categorical**
@@ -537,7 +544,7 @@ It would probably be easier to just view the percents in a **table**, or in a **
 
 ---
 
-# Never Use Pie Charts
+# A Better Plot than a Pie Chart
 
 .center[
 ```{r, echo = FALSE, out.width = "60%", dpi = 300, warning = FALSE}
@@ -555,23 +562,23 @@ bite_tab_bor %>%
   theme_bw()
 ```
 
-**Use a Lollipop Chart!**
+**Lollipop Chart!**
 ]
 
 ---
 
-class: center, middle
+class: center, middle, frame
 
 # The Grammar of Graphics
 
 .pull-left[
-```{r, echo = FALSE}
+```{r, echo = FALSE, dpi = 350, out.width = "85%"}
 knitr::include_graphics("ggplot2_hex.png")
 ```
 ]
 
 .pull-right[
-```{r, echo = FALSE}
+```{r, echo = FALSE, dpi = 250}
 knitr::include_graphics("ggplot2_meme.jpg")
 ```
 ]
@@ -581,13 +588,9 @@ knitr::include_graphics("ggplot2_meme.jpg")
 # Needed Packages
 
 ```{r, eval = FALSE, message = FALSE, warning = FALSE}
-library(nycflights13)
-library(tidyverse) # Includes ggplot2
-library(gapminder)
-library(mdsr)
+library(mdsr) 
+library(tidyverse) # includes ggplot2
 ```
-
-**Install any packages that you haven't installed yet!** 
 
 ---
 
@@ -843,3 +846,9 @@ ggplot(data = mpg, aes(x = cty, y = hwy)) +
   geom_point(aes(color = class))
 ```
 
+
+
+
+    
+    
+    

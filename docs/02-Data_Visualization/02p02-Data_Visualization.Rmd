@@ -1,6 +1,6 @@
 ---
-title: "CEMA 0928: Statistics in the Real World"
-subtitle: "Scatterplots/Linegraphs"
+title: "CEMA 0907: Statistics in the Real World"
+subtitle: "The Five Named Graphs"
 author: "Anthony Scotina"
 date: 
 output:
@@ -24,7 +24,12 @@ library(babynames)
 library(ggsci)
 library(nycflights13)
 library(ggthemes)
+library(mosaic)
 ```
+
+<!--
+pagedown::chrome_print("~/Dropbox/Teaching/02-Brown Courses/CEMA0928-Statistics in the Real World [ONLINE]/Content/02-Data_Visualization/02p02-Data_Visualization.html")
+-->
 
 # Needed Packages
 
@@ -32,6 +37,7 @@ library(ggthemes)
 library(nycflights13)
 library(tidyverse) # Includes ggplot2
 library(mdsr)
+library(mosaic)
 ```
 
 **Install any packages that you haven't installed yet!** 
@@ -163,5 +169,452 @@ ggplot(diamonds, aes(x = carat, y = price, color = cut)) +
   geom_smooth(method = "lm", se = FALSE)
 ```
 
+---
+
+# 5NG#3: Histograms
+
+**Histograms** provide a visualization of the *distribution* of a single *numerical* variable. 
+
+- You need only specific an `x` *aesthetic* in a histogram. 
+
+- By default, the `y` variable is *count*. 
+
+--
+
+Suppose we are interested in the *distribution* of hourly temperature recordings in New York. 
+
+**Histograms** share the following information:
+
+- What is the smallest and largest temperatures, and how often are they observed?
+- What is the "center" temperature?
+- How are the temperatures spread out?
+- What are frequent and infrequent values?
+- Is there any skewness?
+
+---
+
+# Histograms
+
+Let's use the `weather` data frame in the `nycflights13` package:
+
+```{r, message = FALSE, warning = FALSE, dpi = 300, out.width = "45%"}
+ggplot(data = weather, aes(x = temp)) + 
+  geom_histogram()
+```
+
+---
+
+# Histograms
+
+Before we even discuss the histogram, **always** use `color = "white"` (or some other color) in `geom_histogram()`!!!
+
+```{r, message = FALSE, warning = FALSE, dpi = 300, out.width = "40%"}
+ggplot(data = weather, aes(x = temp)) + 
+  geom_histogram(color = "white")
+```
+
+---
+
+# Histograms
+
+.pull-left[
+```{r, warning = FALSE, message = FALSE, echo = F, eval = T}
+ggplot(data = weather, aes(x = temp)) + 
+  geom_histogram(color = "white")
+```
+]
+
+.pull-right[
+What do we notice about the histogram?
+
+- The **middle** temperatures are around 55-60 degrees Fahrenheit. 
+
+- The **range** is from ~10 degrees to ~100 degrees. 
+
+- There are **two prominent peaks** at ~30 degrees and ~70 degrees. 
+    - What do you think could account for these two peaks?
+    - (Side note: Facets by *month* would be useful here!)
+]
+
+---
+
+# Changing the color of histograms
+
+The `color` argument changes the *outline* of each bar in the histogram. 
+
+If you want to change the color of each *bar*, use the `fill` argument. 
+
+- Try running this!
+```{r, eval = FALSE, echo = TRUE}
+ggplot(data = weather, aes(x = temp)) + 
+  geom_histogram(color = "white", fill = "mediumpurple")
+```
+
+- R has **many colors**. See [this](http://www.stat.columbia.edu/~tzheng/files/Rcolor.pdf). 
+
+---
+
+# Changing the bin width of histograms
+
+Note that R usually yells at you when you plot a histogram
+```{r, echo = TRUE, fig.show = "hide", warning = FALSE}
+ggplot(data = weather, aes(x = temp)) + 
+  geom_histogram(color = "white", fill = "mediumpurple")
+```
+
+You can use the `binwidth` argument in `geom_histogram()` to specify the **width of the bins** in the histogram. 
+
+- In general, the bin width can change the appearance of a histogram *considerably*, and there usually isn't a single "best" choice. 
+
+--
+
+```{r, eval = FALSE}
+ggplot(data = weather, aes(x = temp)) + 
+  geom_histogram(color = "white", fill = "mediumpurple", binwidth = 10)
+```
+
+Here, each bin contains a ten-point range of temperatures. 
+
+---
+
+# Density Plots
+
+**Density Plots** are an alternate way to visualize the distribution of a single *numerical* variable. 
+
+- Rather than grouping observations into **bins**, a density plot is a single continuous curve over the entire set of observations. 
+
+- The *y*-axis is **density**, and the *area under the curve* totals to 1. 
+
+In `ggplot2`, we can create a density plot using `geom_density()`:
+
+```{r, eval = FALSE}
+ggplot(data = weather, aes(x = temp)) + 
+  geom_density()
+```
+
+---
+
+# Density Plots 
+
+```{r, message = FALSE, warning = FALSE, dpi = 300, out.width = "50%"}
+ggplot(data = weather, aes(x = temp)) + 
+  geom_density()
+```
+
+---
+
+# Ridgeline Plots (Density Plots by group)
+
+**Ridgeline plots** consist of multiple, overlapping density plots. These usually resemble a mountain range, hence the name. 
+
+- The `ggridges` package contains an additional **geom**, `geom_density_ridges()`, that allows us to create ridgeline plots. 
+
+--
+
+Using the `weather` data, let's create ridgeline plots that separate temperature by month:
+
+```{r, eval = FALSE}
+ggplot(data = weather, aes(x = temp, y = factor(month))) + 
+  geom_density_ridges()
+```
+
+--
+
+**Note**: `geom_density_ridges()` *requires* the *y* aesthetic to be categorical (i.e., a **factor**). 
+
+- Since the `month` variable is technically *numerical* here, we first convert it to a factor when adding it to the *y* aesthetic. 
+
+---
+
+# Practice
+
+Using the `CIACountries` dataset, create a **ridgeline plot** that separates `gdp` delay by `net_users`. 
+
+```{r, eval = FALSE, echo = FALSE}
+ggplot(CIACountries, aes(x = gdp, y = net_users)) + 
+  geom_density_ridges()
+```
+
+---
+
+# 5NG#4: Boxplots
+
+**Boxplots**, like **histograms** and **density plots**, show the *distribution* of a *numerical* variable. 
+
+- However, boxplots are constructed using information provided by a **five-number summary**. 
+
+**Five-number summary**: Minimum, 1st quartile (25th percentile), Median, 3rd quartile (75th percentile), Maximum
+
+--
+
+In R, a five-number summary of any numerical variable can be found using the `summary()` function:
+```{r}
+summary(mpg$hwy)
+```
+
+(Recall that we can use the `$` operator to view individual variables in a data frame!)
+
+---
+
+# Boxplots
+
+```{r, echo = F, eval = T, out.width = "65%", message = FALSE}
+five_number <- tibble(
+  hwy = summary(mpg$hwy)[c(1,2,3,5,6)]
+)
+mpg %>% 
+  ggplot(mapping = aes(x = factor(1), y = hwy)) +
+  #geom_boxplot() +
+  geom_hline(data = five_number, aes(yintercept = hwy), linetype = "dashed") +
+  geom_jitter(width = 0.05, height = 0.5, alpha = 0.1) +
+  labs(x = "")+ theme(axis.ticks = element_blank(), axis.text.x = element_blank())
+```
+
+---
+
+# Boxplots
+
+```{r, echo = F, eval = T, out.width = "65%", message = FALSE}
+five_number <- tibble(
+  hwy = summary(mpg$hwy)[c(1,2,3,5,6)]
+)
+mpg %>% 
+  ggplot(mapping = aes(x = factor(1), y = hwy)) +
+  geom_boxplot() +
+  geom_hline(data = five_number, aes(yintercept = hwy), linetype = "dashed") +
+  #geom_jitter(width = 0.05, height = 0.5, alpha = 0.1) +
+  labs(x = "") + theme(axis.ticks = element_blank(), axis.text.x = element_blank())
+```
+
+---
+
+# Boxplots
+
+**How can we make a boxplot?**
+
+Same as before, we just need to change the `geom_` object. 
+
+```{r, echo = TRUE, eval = FALSE}
+ggplot(data = mpg, aes(y = hwy)) + 
+  geom_boxplot()
+```
+
+(Notice we also use the `y` variable here, not the `x`!)
+
+---
+
+# Side-by-side Boxplots
+
+Boxplots are more interesting when you compare several side-by-side. 
+
+- Let's compare *highway miles per gallon* for different *types* of cars. 
+
+--
+
+```{r, message = FALSE, warning = FALSE, dpi = 300, out.width = "40%"}
+ggplot(data = mpg, aes(x = class, y = hwy)) + 
+  geom_boxplot()
+```
+
+---
+
+# Violin Plots
+
+**Violin plots** are a sort of *hybrid* of density plots and boxplots:
+
+```{r, message = FALSE, warning = FALSE, dpi = 300, out.width = "45%"}
+ggplot(data = mpg, aes(x = class, y = hwy)) + 
+  geom_violin()
+```
+
+---
+
+# Strip Plots
+
+**Strip plots** are a *stripped-down* version of boxplots.
+- Use `geom_jitter()` with a **categorical** *x*  and a **numerical** *y* aesthetic.
+
+```{r, message = FALSE, warning = FALSE, dpi = 300, out.width = "35%"}
+ggplot(data = mpg, aes(x = class, y = hwy)) + 
+  geom_jitter()
+```
+
+---
+
+# Note on Categorical x-axis
+
+When using **boxplots**, **violin plots**, or **strip plots**, the *x* and *y* aesthetics are identical. 
+
+- The *x* is **categorical**, and the *y* is **numerical**. 
+
+--
+
+But if you have *too many categories* in your *x* variable, the labels could get jumbled together in the plot. 
+
+- Use `coord_flip()` to fix this!
+
+```{r, eval = FALSE}
+ggplot(data = mpg, aes(x = class, y = hwy)) + 
+  geom_jitter() + 
+  coord_flip()
+```
+
+---
+
+# Practice
+
+Using the `diamonds` dataset from the `ggplot2` package, construct an appropriate display for **price** of diamonds. 
+
+- If you think `price` might vary along a *categorical variable* in the dataset (e.g., `cut`, `color`), include it in the plot!
+    - [Hint: *violin plots*, *side-by-side boxplots*, *strip plots* could be options if you include a categorical variable.]
+
+```{r, eval = FALSE}
+View(diamonds)
+?diamonds
+```
+
+**Note**: This is a larger dataset than those we've used so far (> 50,000 rows), so run this code to take a sample of 1,000 diamonds if it otherwise takes a while to run. 
+
+```{r, eval = FALSE}
+diamonds = diamonds %>%
+  sample_n(1000)
+```
+
+---
+
+# 5NG#5: Bar Plots
+
+**Bar Plots** provide a visualization of the distribution of a *categorical variable*. 
+
+- The x-axis shows *levels* of the categorical variable. 
+- The y-axis shows the *count* of observations within each level. 
+
+--
+
+To illustrate bar plots, we will use the `HELPrct` dataset, which contains data from a clinical trial for adult inpatients recruited from a detoxification unit. 
+- This dataset is loaded when you load the `mdsr` package. 
+
+```{r, eval = FALSE}
+View(HELPrct)
+```
+
+---
+
+# Bar Plots
+
+```{r, message = FALSE, warning = FALSE, dpi = 300, out.width = "50%"}
+ggplot(data = HELPrct, aes(x = homeless)) + 
+  geom_bar() + 
+  labs(x = "") # Remove redundant x-axis label
+```
+
+---
+
+# Stacked Bar Plots
+
+If we map a *second categorical variable* to the `fill` **aesthetic**, we can construct **stacked bar plots**. 
+
+```{r, message = FALSE, warning = FALSE, dpi = 300, out.width = "40%"}
+ggplot(data = HELPrct, aes(x = homeless)) + 
+  geom_bar(aes(fill = substance)) + 
+  labs(x = "") # Remove redundant x-axis label
+```
+
+---
+
+# Bar Plots (on proportion scale)
+
+Add `position = "fill"` to `geom_barplot()` to convert the *y*-axis to **proportion** *out of each sub-category*.
+
+```{r, message = FALSE, warning = FALSE, dpi = 300, out.width = "40%"}
+ggplot(data = HELPrct, aes(x = homeless)) + 
+  geom_bar(aes(fill = substance), position = "fill") + 
+  labs(x = "", y = "Proportion") 
+```
+
+---
+
+# Color 
+
+Because *I know* you were wondering...
+
+```{r, message = FALSE, warning = FALSE, dpi = 300, out.width = "40%"}
+ggplot(data = HELPrct, aes(x = homeless)) + 
+  geom_bar(aes(fill = substance), position = "fill") + 
+  labs(x = "", y = "Proportion") +
+  scale_fill_manual(values = c("dodgerblue", "chartreuse", "hotpink")) #<<
+```
+
+---
+
+# Summary: Building plots in layers
+
+```{r, eval = FALSE}
+?mtcars
+```
+
+```{r, out.width = "50%"}
+ggplot(data = mtcars, mapping = aes(x = wt, y = mpg)) 
+```
+
+---
+
+# Summary: Building plots in layers
+
+```{r, out.width = "50%"}
+ggplot(data = mtcars, mapping = aes(x = wt, y = mpg))  + 
+  geom_point()
+```
+
+---
+
+# Summary: Building plots in layers
+
+```{r, out.width = "50%"}
+ggplot(data = mtcars, mapping = aes(x = wt, y = mpg))  + 
+  geom_point(aes(color = factor(cyl)))
+```
+
+---
+
+# Summary: Building plots in layers
+
+```{r, out.width = "50%", message = FALSE}
+ggplot(data = mtcars, mapping = aes(x = wt, y = mpg))  + 
+  geom_point(aes(color = factor(cyl))) + 
+  geom_smooth()
+```
+
+---
+
+# Summary: Building plots in layers
+
+```{r, out.width = "50%", message = FALSE}
+ggplot(data = mtcars, mapping = aes(x = wt, y = mpg))  + 
+  geom_point(aes(color = factor(cyl))) + 
+  geom_smooth(se = FALSE, aes(color = factor(cyl)))
+```
+
+---
+
+# Summary: Building plots in layers
+
+```{r, out.width = "45%", message = FALSE}
+ggplot(data = mtcars, mapping = aes(x = wt, y = mpg))  + 
+  geom_point(aes(color = factor(cyl))) + 
+  geom_smooth(se = FALSE, aes(color = factor(cyl))) + 
+  labs(x="Weight (lb/1000)", y = "Miles/(US) gallon", color = "Cylinders") + 
+  theme_classic()
+```
+
+---
+
+# Summary
+
+.center[
+```{r, echo = F, eval = T, out.width = "70%"}
+knitr::include_graphics("summary_5ng.png")
+```
+]
 
 

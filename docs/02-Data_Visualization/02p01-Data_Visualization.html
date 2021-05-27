@@ -1,17 +1,18 @@
 <!DOCTYPE html>
 <html lang="" xml:lang="">
   <head>
-    <title>CEMA 0928: Statistics in the Real World</title>
+    <title>CEMA 0907: Statistics in the Real World</title>
     <meta charset="utf-8" />
     <meta name="author" content="Anthony Scotina" />
+    <script src="libs/header-attrs-2.6/header-attrs.js"></script>
     <link rel="stylesheet" href="my-theme.css" type="text/css" />
   </head>
   <body>
     <textarea id="source">
 class: center, middle, inverse, title-slide
 
-# CEMA 0928: Statistics in the Real World
-## The Grammar of Graphics
+# CEMA 0907: Statistics in the Real World
+## Data Visualization with ggplot2
 ### Anthony Scotina
 
 ---
@@ -22,8 +23,14 @@ class: center, middle, inverse, title-slide
 
 
 &lt;!--
-pagedown::chrome_print("~/Dropbox/Teaching/02-Brown Courses/CEMA0907-Statistics in the Real World [ONLINE]/Content/02-Data_Visualization/02p01-Data_Visualization.html")
+pagedown::chrome_print("~/Dropbox/Teaching/03-Simmons Courses/STAT228-Introduction to Data Science/Lecture Slides/02-Data_Visualization/02-Data_Visualization.html")
 --&gt;
+
+class: center, middle, frame
+
+# Taxonomy of Data Graphics
+
+---
 
 # The Data Science  Pipeline
 
@@ -156,7 +163,7 @@ The choice of coordinate system is **crucial**!
 **Three choices**
 
 - **Numerical**
-    - Examples: *continuous* (e.g., temperature), *discrete* (e.g., MATH 228 enrollment)
+    - Examples: *continuous* (e.g., temperature), *discrete* (e.g., STAT 228 enrollment)
     - Values could be *evenly spaced*, on a *logarithmic scale*, or represent *percentages*
 
 - **Categorical**
@@ -248,26 +255,26 @@ It would probably be easier to just view the percents in a **table**, or in a **
 
 ---
 
-# Never Use Pie Charts
+# A Better Plot than a Pie Chart
 
 .center[
 &lt;img src="02p01-Data_Visualization_files/figure-html/unnamed-chunk-17-1.png" width="60%" /&gt;
 
-**Use a Lollipop Chart!**
+**Lollipop Chart!**
 ]
 
 ---
 
-class: center, middle
+class: center, middle, frame
 
 # The Grammar of Graphics
 
 .pull-left[
-&lt;img src="ggplot2_hex.png" width="241" /&gt;
+&lt;img src="ggplot2_hex.png" width="85%" /&gt;
 ]
 
 .pull-right[
-&lt;img src="ggplot2_meme.jpg" width="1203" /&gt;
+&lt;img src="ggplot2_meme.jpg" width="346" /&gt;
 ]
 
 ---
@@ -276,13 +283,9 @@ class: center, middle
 
 
 ```r
-library(nycflights13)
-library(tidyverse) # Includes ggplot2
-library(gapminder)
-library(mdsr)
+library(mdsr) 
+library(tidyverse) # includes ggplot2
 ```
-
-**Install any packages that you haven't installed yet!** 
 
 ---
 
@@ -580,7 +583,16 @@ View(mpg)
 
 Using the `mpg` data, create a visualization that depicts the relationship between *city miles per gallon* (`cty`) and *highway miles per gallon* (`hwy`). 
 
-- Add a **color** aesthetic for `class` (the "type" of car).
+- Add a **color** aesthetic for `class` (the "type" of car). 
+
+
+
+
+
+
+    
+    
+    
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
@@ -627,6 +639,32 @@ if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
     deleted = true;
   });
 })();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
 // adds .remark-code-has-line-highlighted class to <pre> parent elements
 // of code chunks containing highlighted lines with class .remark-code-line-highlighted
 (function(d) {
@@ -644,17 +682,6 @@ if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
   }
   preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
 })(document);</script>
-
-<script>
-(function() {
-  var links = document.getElementsByTagName('a');
-  for (var i = 0; i < links.length; i++) {
-    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
-      links[i].target = '_blank';
-    }
-  }
-})();
-</script>
 
 <script>
 slideshow._releaseMath = function(el) {
