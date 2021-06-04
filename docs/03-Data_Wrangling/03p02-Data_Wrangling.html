@@ -1,17 +1,18 @@
 <!DOCTYPE html>
 <html lang="" xml:lang="">
   <head>
-    <title>CEMA 0928: Statistics in the Real World</title>
+    <title>CEMA 0907: Statistics in the Real World</title>
     <meta charset="utf-8" />
     <meta name="author" content="Anthony Scotina" />
+    <script src="libs/header-attrs-2.6/header-attrs.js"></script>
     <link rel="stylesheet" href="my-theme.css" type="text/css" />
   </head>
   <body>
     <textarea id="source">
 class: center, middle, inverse, title-slide
 
-# CEMA 0928: Statistics in the Real World
-## summarize() variables
+# CEMA 0907: Statistics in the Real World
+## BONUS Verb-Named Functions
 ### Anthony Scotina
 
 ---
@@ -25,88 +26,542 @@ class: center, middle, inverse, title-slide
 
 
 ```r
-library(tidyverse) # includes ggplot2 and dplyr
-library(nycflights13)
+library(tidyverse)
 ```
 
 ---
 
-# `summarize()` variables
+class: center, middle
 
-.center[
-&lt;img src="dplyr_summarize.png" width="70%" /&gt;
-]
+# Data Cleaning: Tips and Tricks
 
-- Return **summary statistics** of a variable (e.g., `mean`, `sd`, `IQR`, `sum`, `median`, `max`).
+## (Anthony's Favorite Things)
 
 ---
 
-# `summarize()`
-
-Using the `weather` data frame, let's calculate the **mean** and **standard deviation** of `temp` (temperature). 
+# Counting Observations per group
 
 
 ```r
-summary.temp = weather %&gt;%
-  summarize(mean.temp = mean(temp), 
-            sd.temp = sd(temp))
-summary.temp
+video_games &lt;- read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-07-30/video_games.csv")
 ```
 
-```
-# A tibble: 1 x 2
-  mean.temp sd.temp
-      &lt;dbl&gt;   &lt;dbl&gt;
-1        NA      NA
+- `number`:	Game number
+- `game`: Game Title
+- `release_date`:	Release date
+- `price`: US Dollars + Cents
+- `owners`: Estimated number of people owning this game
+- `developer`: Group that developed the game
+- `publisher`: Group that published the game
+- `average_playtime`: Average playtime in minutes
+- `median_playtime`: Median playtime in minutes
+- `metascore`: Metascore rating
+
+**Question**: How would you count the number of games *per publisher*, and then *arrange* by count?
+
+---
+
+# Counting Observations per group
+
+Using some of `dplyr`'s data wrangling functions, we can do this in several lines:
+
+
+```r
+video_games %&gt;%
+  group_by(publisher) %&gt;%
+  summarize(N_games = n()) %&gt;%
+  arrange(desc(N_games))
 ```
 
 --
 
-Uh oh, what happened?!
+This pipeline:
 
-- If there are **missing values** (`NA` values) in a variable, any summary statistic in R outputs `NA` by default. 
+1. **groups by** `publisher`, 
+
+2. **summarizes** the data by simply counting the *number of rows* (`n()`) per publisher, and 
+
+3. **arranges in descending order** by the newly-created `N_games`. 
 
 ---
 
-# `summarize()`
+# `count()`
 
-If a variable has `NA` values, we can still calculate a mean or standard deviation!
-- We just need to add `na.rm = TRUE` to the `mean()` and `sd()` calculations. 
+The `count()` function is one of my **favorites**!
+
+- `count()` simply *count* the number of observations **by group**. 
 
 
 ```r
-summary.temp = weather %&gt;%
-  summarize(mean.temp = mean(temp, na.rm = TRUE), 
-            sd.temp = sd(temp, na.rm = TRUE))
-summary.temp
+video_games %&gt;%
+  count(publisher)
 ```
 
-```
-# A tibble: 1 x 2
-  mean.temp sd.temp
-      &lt;dbl&gt;   &lt;dbl&gt;
-1      55.3    17.8
-```
-
-The line `na.rm` stands for "NA remove."
+- This returns a table with the groups and the number of observations per group. 
 
 ---
 
-# Some Common Summary Functions
+# `count()`
 
-Here are some common functions used in `summarize()`:
-- `mean()`: the **mean** AKA the average
-- `sd()`: the **standard deviation**, which is a measure of spread
-- `min()` and `max()`: the **minimum** and **maximum** values respectively
-- `IQR()`: **Interquartile range**
-- `sum()`: the **sum**
-- `n()`: a **count of the number of rows/observations** in each group. This particular summary function will make more sense when we introduce `group_by()`.
+If you want to `arrange` by `n` (the number of observations per group), you *could* use arrange...
+
+
+```r
+video_games %&gt;%
+  count(publisher) %&gt;%
+  arrange(desc(n))
+```
 
 ---
 
-# Practice
+# `count()`
 
-Find the **minimum** and **maximum** `temp` in the `weather` data frame.
+You *could also* just use the `sort = TRUE` option in `count()` to sort in **descending order**:
+
+
+```r
+video_games %&gt;%
+  count(publisher, sort = TRUE)
+```
+
+```
+## # A tibble: 13,954 x 2
+##    publisher               n
+##    &lt;chr&gt;               &lt;int&gt;
+##  1 Big Fish Games        284
+##  2 SEGA                  141
+##  3 Strategy First        129
+##  4 Ubisoft               123
+##  5 Square Enix            95
+##  6 NA                     95
+##  7 Sekai Project          94
+##  8 Choice of Games        92
+##  9 Dagestan Technology    89
+## 10 1C Entertainment       85
+## # … with 13,944 more rows
+```
+
+---
+
+# Lumping Factors
+
+&lt;strike&gt;Let's make a **barplot** of *games per publisher*:&lt;/strike&gt;
+
+**Caution**: Don't actually make a barplot. There are 13,954 *unique publishers* (as seen in the previous `count()` table). 
+
+
+```r
+ggplot(video_games, aes(x = publisher)) + 
+  geom_bar() + 
+  coord_flip()
+```
+
+---
+
+# `fct_lump()`
+
+The `fct_lump()` function is one of my **favorites**!
+
+- `fct_lump()` is a `forcats` package function (part of the `tidyverse`) that **lumps together** the least common *factor* levels into a level named `"Other"`. 
+
+
+```r
+video_games %&gt;%
+* mutate(publisher_lump = fct_lump(publisher, n = 5)) %&gt;%
+  count(publisher_lump, sort = TRUE)
+```
+
+```
+## # A tibble: 7 x 2
+##   publisher_lump     n
+##   &lt;fct&gt;          &lt;int&gt;
+## 1 Other          25821
+## 2 Big Fish Games   284
+## 3 SEGA             141
+## 4 Strategy First   129
+## 5 Ubisoft          123
+## 6 Square Enix       95
+## 7 NA                95
+```
+
+---
+
+# `fct_lump()`
+
+**Now** we can make a barplot without R crashing!
+
+
+```r
+video_games %&gt;%
+  mutate(publisher_lump = fct_lump(publisher, n = 5)) %&gt;% 
+  ggplot(aes(x = publisher_lump)) + 
+  geom_bar() + 
+  labs(x = "Publisher", y = "Count") + 
+  coord_flip()
+```
+
+&lt;img src="03p02-Data_Wrangling_files/figure-html/unnamed-chunk-10-1.png" width="40%" /&gt;
+
+---
+
+# `fct_lump()`
+
+**Note**: In this case, I would probably make the barplot *without* the `Other` category in this context. 
+
+- But using `fct_lump()` makes it a bit easier to `filter()` afterwards:
+
+
+```r
+video_games %&gt;%
+  mutate(publisher_lump = fct_lump(publisher, n = 5)) %&gt;% 
+* filter(publisher_lump != "Other") %&gt;%
+  ggplot(aes(x = publisher_lump)) + 
+  geom_bar() + 
+  labs(x = "Publisher", y = "Count") + 
+  coord_flip()
+```
+
+---
+
+# `fct_reorder()` with `geom_col()`
+
+Let's stay with `forcats` for a bit. 
+
+It is usually preferable to arrange a *barplot* (or *boxplots*/*stripplots*) so that the bars are in **ascending** or **descending order** based on the *y*-axis variable. 
+
+- Using `fct_reorder()` within `ggplot()` (with `geom_col()`) can get us there!
+
+
+```r
+video_games %&gt;%
+  mutate(publisher_lump = fct_lump(publisher, n = 5)) %&gt;% 
+  filter(publisher_lump != "Other") %&gt;%
+  count(publisher_lump) %&gt;% 
+  ggplot(aes(x = fct_reorder(publisher_lump, n), y = n)) + 
+  geom_col() + 
+  labs(x = "Publisher", y = "Count") + 
+  coord_flip()
+```
+
+---
+
+# `fct_reorder()` with `geom_col()`
+
+You can also use `fct_reorder()` with a *summary statistic*, so that the bars in `geom_col()` are arranged based on the statistic (instead of *Count*):
+
+
+```r
+video_games %&gt;%
+  mutate(publisher_lump = fct_lump(publisher, n = 5)) %&gt;% 
+  filter(publisher_lump != "Other") %&gt;%
+* group_by(publisher_lump) %&gt;%
+* summarize(mean_price = mean(price, na.rm = TRUE)) %&gt;%
+  ggplot(aes(x = fct_reorder(publisher_lump, mean_price), y = mean_price)) + 
+  geom_col() + 
+  labs(x = "Publisher", y = "Average Price (in $, by publisher)") + 
+  coord_flip()
+```
+
+---
+
+# `separate()`
+
+`separate()` is a `tidyr` function that can be used if you convert a *character* column into multiple other character columns. 
+
+We'll use the `nyc_restaurants` data from *TidyTuesday* (more on this dataset [HERE](https://github.com/rfordatascience/tidytuesday/tree/master/data/2018/2018-12-11)):
+
+
+```r
+nyc_restaurants &lt;- read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2018/2018-12-11/nyc_restaurants.csv")
+```
+
+
+```r
+View(nyc_restaurants)
+```
+
+--
+
+One variable, `inspection_type`, is defined as follows:
+
+&gt; A combination of the inspection program and the type of inspection performed; See Data Dictionary for full list of expected values
+
+---
+
+# `separate()`
+
+There are **a lot** of different `inspection_type` categories:
+
+
+```r
+nyc_restaurants %&gt;%
+  count(inspection_type, sort = TRUE) 
+```
+
+```
+## # A tibble: 33 x 2
+##    inspection_type                                        n
+##    &lt;chr&gt;                                              &lt;int&gt;
+##  1 Cycle Inspection / Initial Inspection             171657
+##  2 Cycle Inspection / Re-inspection                   73207
+##  3 Pre-permit (Operational) / Initial Inspection      20896
+##  4 Pre-permit (Operational) / Re-inspection            9260
+##  5 Administrative Miscellaneous / Initial Inspection   5513
+##  6 Cycle Inspection / Reopening Inspection             3426
+##  7 Pre-permit (Non-operational) / Initial Inspection   2936
+##  8 Smoke-Free Air Act / Initial Inspection             2530
+##  9 Administrative Miscellaneous / Re-inspection        1765
+## 10 Trans Fat / Initial Inspection                      1747
+## # … with 23 more rows
+```
+
+---
+
+# `separate()`
+
+This means that making a useful visualization with all of these categories could be challenging!
+
+
+```r
+nyc_restaurants %&gt;%
+  count(inspection_type, sort = TRUE) %&gt;%
+  ggplot(aes(x = fct_reorder(inspection_type, n), y = n)) + 
+  geom_col() + 
+  labs(x = "", y = "Count") +
+  coord_flip() 
+```
+
+---
+
+# `separate()`
+
+Let's take `inspection_type` and `separate()` it into two columns: `inspection_program` and `inspection_type`:
+
+
+```r
+nyc_restaurants_sep = nyc_restaurants %&gt;%
+  separate(inspection_type, 
+           into = c("inspection_program", "inspection_type"), 
+           sep = "/")
+```
+
+--
+
+**Notes**
+
+- The `into` argument gives the names of the **new columns** into which we are *separating* the original column. 
+
+- The `sep` argument is the character that serves as the *separator* between columns. 
+    - In the original dataset, the `inspection_type` variable includes the different pieces of information separated by a `"/"`.
+
+---
+
+# `separate()`
+
+
+```r
+nyc_restaurants_sep %&gt;%
+  count(inspection_program) %&gt;%
+  na.omit() %&gt;% # REMOVES NA CATEGORY
+  ggplot(aes(x = fct_reorder(inspection_program, n), y = n)) + 
+  geom_col(aes(fill = inspection_program), color = "black") + 
+  labs(x = "", y = "Count") + 
+  coord_flip() + 
+  theme_bw() + 
+  theme(legend.position = "none")
+```
+
+---
+
+# `separate()`
+
+Another way to **reorder** categories by frequency is by `fct_infreq()`. 
+- With this we'll use `geom_bar()` instead of `geom_col()`, since we aren't first creating a *summary table*. 
+
+
+```r
+nyc_restaurants_sep %&gt;%
+  filter(!is.na(inspection_program)) %&gt;%
+* ggplot(aes(x = fct_infreq(inspection_program))) +
+  geom_bar(aes(fill = inspection_type), color = "black") + 
+  labs(x = "", y = "Count", fill = "Inspection Type") + 
+  coord_flip() + 
+  theme_bw()
+```
+
+---
+
+# `scales::comma`
+
+Many visualizations will have an axis that uses a *continuous numerical* scale. By default, R does not add commas to large numbers. 
+
+- We can fix this by using `label = scales::comma` within `scale_x_continuous()` or `scale_y_continuous()`:
+
+
+```r
+nyc_restaurants_sep %&gt;%
+  filter(!is.na(inspection_program)) %&gt;%
+* ggplot(aes(x = fct_infreq(inspection_program))) +
+  geom_bar(aes(fill = inspection_type), color = "black") + 
+  labs(x = "", y = "Count", fill = "Inspection Type") + 
+  coord_flip() + 
+  theme_bw() + 
+  scale_y_continuous(label = scales::comma)
+```
+
+---
+
+# Filtering Using Text Expressions
+
+The `violation_description` column contains a **plain text** description of each unique violation. 
+
+- Let's see which **boroughs** have restaurants with the most *roach-related* violations!
+
+--
+
+We can use one of many `stringr` package (part of the `tidyverse`) functions to extract information about a particular *text pattern* from a character vector. 
+
+In particular, `str_detect()` detects the *presence* of a pattern within a string of text. 
+
+
+```r
+?str_detect
+```
+
+---
+
+# Filtering Using Text Expressions
+
+We will use `str_detect()` in combination with `mutate()` to create a `logical` variable for whether or not each restaurant had a roach-related violation:
+
+- `str_detect()` returns `TRUE` or `FALSE` depending on whether the given `pattern` appears within the `string`. 
+
+
+```r
+nyc_restaurants = nyc_restaurants %&gt;%
+  mutate(roach_violation =
+    str_detect(string = violation_description, 
+               pattern = "roach"))
+```
+
+---
+
+# Roach Violations in NY
+
+
+```r
+nyc_restaurants %&gt;%
+  filter(roach_violation == TRUE) %&gt;%
+  ggplot(aes(x = fct_infreq(boro))) + 
+  geom_bar() + 
+  labs(x = "", y = "Count", 
+       title = "Which NYC Boroughs have the most Roach-related Violations?") +
+  coord_flip() + 
+  theme_bw() 
+```
+
+&lt;img src="03p02-Data_Wrangling_files/figure-html/unnamed-chunk-24-1.png" width="40%" /&gt;
+
+---
+
+# `case_when()`
+
+Are there more **resort** hotel reservations (compared to **city** hotel reservations) during the *summer* months?
+
+This dataset contains open data on **hotel booking demand** via [TidyTuesday](https://github.com/rfordatascience/tidytuesday/blob/master/data/2020/2020-02-11/readme.md). 
+
+
+```r
+hotels &lt;- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-02-11/hotels.csv')
+```
+
+--
+
+**Two variables of interest**:
+
+- `hotel`: `city` or `resort`
+- `arrival_date_month`: the *month* (in words) of arrival
+
+---
+
+# `case_when()`
+
+From `?case_when`:
+
+&gt; This function allows you to vectorise multiple `if_else()` statements. 
+
+--
+
+Let's create a new `season` variable:
+
+- If `arrival_date_month %in% c("December", "January", "February")`, then `season = "Winter"`
+
+- If `arrival_date_month %in% c("March", "April", "May")`, then `season = "Spring"`
+
+- If `arrival_date_month %in% c("June", "July", "August")`, then `season = "Summer"`
+
+- If `arrival_date_month %in% c("September", "October", "November")`, then `season = "Fall"`
+
+---
+
+# `case_when()`
+
+From `?case_when`:
+
+&gt; This function allows you to vectorise multiple `if_else()` statements. 
+
+The general syntax within a `case_when()` statement is: 
+
+.center[
+case_when(`CONDITION1 ~ CATEGORY NAME IF CONDITION1 IS TRUE`, 
+`CONDITION1 ~ CATEGORY NAME IF CONDITION1 IS TRUE`
+]
+
+```r
+mutate(new_variable = 
+         case_when(`CONDITION1 ~ CATEGORY NAME IF CONDITION1 IS TRUE`, 
+                   `CONDITION2 ~ CATEGORY NAME IF CONDITION2 IS TRUE`, 
+                   ... )
+       )
+```
+
+---
+
+# `case_when()`
+
+From `?case_when`:
+
+&gt; This function allows you to vectorise multiple `if_else()` statements. 
+
+Let's create a new `season` variable:
+
+
+```r
+hotels = hotels %&gt;%
+  mutate(season = 
+           case_when(arrival_date_month %in% c("December", "January", "February") ~ "Winter", 
+                     arrival_date_month %in% c("March", "April", "May") ~ "Spring", 
+                     arrival_date_month %in% c("June", "July", "August") ~ "Summer", 
+                     arrival_date_month %in% c("September", "October", "November") ~ "Fall"))
+```
+
+---
+
+# Hotel Reservations (by season)
+
+Now let's make a bar graph using the new `season` variable!
+
+
+```r
+hotels %&gt;%
+  ggplot(aes(x = season, fill = hotel)) + 
+  geom_bar(position = "dodge") + 
+  labs(x = "", y = "", fill = "",
+       title = "Hotel Reservations (by season)") + 
+  scale_y_continuous(labels = scales::comma) +
+  coord_flip() +
+  theme_minimal()
+```
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
