@@ -1,5 +1,5 @@
 ---
-title: "CEMA 0928: Statistics in the Real World"
+title: "CEMA 0907: Statistics in the Real World"
 subtitle: "Sampling"
 author: "Anthony Scotina"
 date: 
@@ -20,6 +20,12 @@ mono_accent(base_color = "#43418A")
 ```{r, include = FALSE}
 library(tidyverse)
 library(moderndive)
+```
+
+```{r, echo = FALSE}
+knitr::opts_chunk$set(
+  message = FALSE, warning = FALSE
+)
 ```
 
 

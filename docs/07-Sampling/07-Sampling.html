@@ -1,20 +1,23 @@
 <!DOCTYPE html>
 <html lang="" xml:lang="">
   <head>
-    <title>CEMA 0928: Statistics in the Real World</title>
+    <title>CEMA 0907: Statistics in the Real World</title>
     <meta charset="utf-8" />
     <meta name="author" content="Anthony Scotina" />
+    <script src="libs/header-attrs-2.6/header-attrs.js"></script>
     <link rel="stylesheet" href="my-theme.css" type="text/css" />
   </head>
   <body>
     <textarea id="source">
 class: center, middle, inverse, title-slide
 
-# CEMA 0928: Statistics in the Real World
+# CEMA 0907: Statistics in the Real World
 ## Sampling
 ### Anthony Scotina
 
 ---
+
+
 
 
 
@@ -110,10 +113,6 @@ virtual_sample %&gt;%
 ```
 
 ```
-`summarise()` ungrouping output (override with `.groups` argument)
-```
-
-```
 # A tibble: 1 x 2
   replicate  prop
       &lt;int&gt; &lt;dbl&gt;
@@ -183,10 +182,6 @@ virtual_prop_red = virtual_samples_30 %&gt;%
   summarize(prop = sum(color == "red")/n())
 ```
 
-```
-## `summarise()` ungrouping output (override with `.groups` argument)
-```
-
 
 ```r
 View(virtual_prop_red)
@@ -251,10 +246,6 @@ virtual_prop_red_1000 = virtual_samples_1000 %&gt;%
   summarize(prop = sum(color == "red")/n())
 ```
 
-```
-## `summarise()` ungrouping output (override with `.groups` argument)
-```
-
 
 ```r
 ggplot(data = virtual_prop_red_1000, aes(x = prop)) + 
@@ -266,7 +257,7 @@ ggplot(data = virtual_prop_red_1000, aes(x = prop)) +
 # 1,000 Virtual Samples
 
 .center[
-![](07-Sampling_files/figure-html/unnamed-chunk-16-1.png)&lt;!-- --&gt;
+![](07-Sampling_files/figure-html/unnamed-chunk-17-1.png)&lt;!-- --&gt;
 ]
 
 ---
@@ -289,16 +280,12 @@ virtual_prop_red_100 = virtual_samples_100 %&gt;%
   summarize(prop = sum(color == "red")/n())
 ```
 
-```
-## `summarise()` ungrouping output (override with `.groups` argument)
-```
-
 ---
 
 # 1,000 Virtual Samples of size 100
 
 .center[
-&lt;img src="07-Sampling_files/figure-html/unnamed-chunk-18-1.png" width="50%" /&gt;
+&lt;img src="07-Sampling_files/figure-html/unnamed-chunk-19-1.png" width="50%" /&gt;
 ]
 
 These types of *distributions* are very special: they are called **sampling distributions**. 
@@ -343,13 +330,7 @@ virtual_samples_10 = rep_sample_n(bowl, size = 10, reps = 1000)
 virtual_prop_red_10 = virtual_samples_10 %&gt;%
   group_by(replicate) %&gt;%
   summarize(prop = sum(color == "red")/n())
-```
 
-```
-`summarise()` ungrouping output (override with `.groups` argument)
-```
-
-```r
 summary(virtual_prop_red_10$prop)
 ```
 
@@ -371,13 +352,7 @@ virtual_samples_50 = rep_sample_n(bowl, size = 50, reps = 1000)
 virtual_prop_red_50 = virtual_samples_50 %&gt;%
   group_by(replicate) %&gt;%
   summarize(prop = sum(color == "red")/n())
-```
 
-```
-`summarise()` ungrouping output (override with `.groups` argument)
-```
-
-```r
 summary(virtual_prop_red_50$prop)
 ```
 
@@ -399,13 +374,7 @@ virtual_samples_100 = rep_sample_n(bowl, size = 100, reps = 1000)
 virtual_prop_red_100 = virtual_samples_100 %&gt;%
   group_by(replicate) %&gt;%
   summarize(prop = sum(color == "red")/n())
-```
 
-```
-`summarise()` ungrouping output (override with `.groups` argument)
-```
-
-```r
 summary(virtual_prop_red_100$prop)
 ```
 
@@ -532,10 +501,6 @@ virtual_mean_10 = virtual_pennies_10 %&gt;%
   summarize(mean_age = mean(age_in_2011))
 ```
 
-```
-## `summarise()` ungrouping output (override with `.groups` argument)
-```
-
 ---
 
 # Practice
@@ -556,10 +521,6 @@ virtual_mean_50 = virtual_pennies_50 %&gt;%
   summarize(mean_age = mean(age_in_2011))
 ```
 
-```
-## `summarise()` ungrouping output (override with `.groups` argument)
-```
-
 
 
 
@@ -568,10 +529,6 @@ virtual_pennies_100 = rep_sample_n(pennies, size = 100, reps = 1000)
 virtual_mean_100 = virtual_pennies_100 %&gt;%
   group_by(replicate) %&gt;%
   summarize(mean_age = mean(age_in_2011))
-```
-
-```
-## `summarise()` ungrouping output (override with `.groups` argument)
 ```
 
 ---
@@ -731,6 +688,8 @@ and `$$\hat{p}\sim \text{Normal}\left(p, \sqrt{\frac{p(1-p)}{n}}\right)$$`
 # Notation Summary
 
 &lt;img src="notation-summary.png" width="2064" /&gt;
+
+
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
